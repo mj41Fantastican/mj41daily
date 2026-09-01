@@ -112,7 +112,7 @@ export function SettingsPanel() {
   const [issuePrice, setIssuePrice] = useState('$0.041');
   const [tagline, setTagline] = useState("All the news that's fit to cast");
   const [editorHandle, setEditorHandle] = useState('@mj41fantastican');
-  const [paperName, setPaperName] = useState('The Copper Wire: A Daily Miscellany');
+  const [paperName, setPaperName] = useState('The Daily Miscellany: A Compendium Of Interesting Things');
   const [channelUrl, setChannelUrl] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('dailyfarcaster.fc');
   // Editorial note
@@ -143,7 +143,7 @@ export function SettingsPanel() {
     setIssuePrice(settings.coverPrice ?? '$0.041');
     setTagline(settings.tagline ?? "All the news that's fit to cast");
     setEditorHandle(settings.editorHandle ?? '@mj41fantastican');
-    setPaperName(settings.paperName ?? 'The Daily Tribune');
+    setPaperName(settings.paperName ?? 'The Daily Miscellany');
     setChannelUrl(settings.channelUrl ?? '');
     setWebsiteUrl(settings.websiteUrl ?? 'dailyfarcaster.fc');
     setEditorialNoteEnabled(settings.editorialNoteEnabled ?? false);
@@ -228,7 +228,7 @@ export function SettingsPanel() {
         <div className={`border-2 ${theme.border}`}>
           <SectionHeader>Paper Identity</SectionHeader>
           <div className={`p-2 space-y-2 ${theme.bg}`}>
-            <TextInput label="Paper name" value={paperName} onChange={setPaperName} placeholder="The Copper Wire: A Daily Miscellany" />
+            <TextInput label="Paper name" value={paperName} onChange={setPaperName} placeholder="The Daily Miscellany: A Compendium Of Interesting Things" />
             <TextInput label="Editor handle" value={editorHandle} onChange={setEditorHandle} placeholder="@mj41fantastican" />
             <TextInput label="Nameplate tagline" value={tagline} onChange={setTagline} placeholder="All the news that's fit to cast" />
             <TextInput label="Cover price (display only)" value={issuePrice} onChange={setIssuePrice} placeholder="$0.041" />

@@ -24,7 +24,7 @@ function defaultSettings(): PaperSettingsRow {
     tagline: "All the news that's fit to cast",
     editorHandle: "@mj41fantastican",
     colorScheme: "bw",
-    paperName: "The Daily Tribune",
+    paperName: "The Daily Miscellany",
     channelUrl: "",
     websiteUrl: "dailyfarcaster.fc",
     editorialNoteEnabled: false,

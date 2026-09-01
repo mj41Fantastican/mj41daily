@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
             network: NETWORK,
             contractAddress: CONTRACT,
             metadata: {
-              name: `${serial} - ${displayName}'s Daily Tribune`,
+              name: `${serial} - ${displayName}'s Daily Miscellany`,
               description: `A PFP front page Special Edition Print for Farcasters. Starring @${username} and minted with proof of date on farcaster on chain. Extra Extra @${username} is a big deal. an mj41 nft pegged to copper. This nft, as with all official 'MJ41' serial nft's, is pegged to one ounce of copper.`,
               image: imageUrl,
               external_url: openSeaUrl,
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
                 { trait_type: "Issue Value",      value: issueValue },
                 { trait_type: "Edition",          value: `Special Edition Print For Farcasters Starring @${username}` },
                 { trait_type: "Color Theme",      value: colorTheme ?? "Classic B&W" },
-                { trait_type: "Publication",      value: "The Daily Tribune" },
+                { trait_type: "Publication",      value: "The Daily Miscellany" },
                 { trait_type: "Network",          value: "Base" },
                 { trait_type: "Pegged To",        value: "1 oz Copper" },
               ],

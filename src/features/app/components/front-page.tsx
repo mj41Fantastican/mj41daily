@@ -878,7 +878,7 @@ export function FrontPage({
         {fcUser?.fid && (
           <div className={`border-2 mb-2 ${theme.border}`}>
             <div className={`border-b px-2 py-[3px] text-center text-[9px] font-black uppercase tracking-[0.2em] ${theme.borderLight} ${theme.fillLight}`} style={SF}>
-              Tribune Subscribers
+              Miscellany Subscribers
             </div>
             <div className="px-3 py-3">
               {subscribed ? (

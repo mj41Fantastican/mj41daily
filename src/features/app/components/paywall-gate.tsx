@@ -214,8 +214,8 @@ function PersonalMintSection({
   function handleShareMint() {
     if (!coverData || !mintResult) return;
     const serial = mintResult.serial;
-    const headline = coverData.headline ?? 'My Copper Wire cover';
-    const text = `I just minted my personalized Copper Wire cover — ${serial} 🗞️\n\n"${headline.slice(0, 100)}"\n\nGet yours:`;
+    const headline = coverData.headline ?? 'My Miscellany cover';
+    const text = `I just minted my personalized Miscellany cover — ${serial} 🗞️\n\n"${headline.slice(0, 100)}"\n\nGet yours:`;
     try {
       sdk.actions.composeCast({
         text,
@@ -278,7 +278,7 @@ function PersonalMintSection({
       {stage === 'preview' && coverData && (
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={coverData.imageUrl} alt="Your personal Tribune cover"
+          <img src={coverData.imageUrl} alt="Your personal Miscellany cover"
             style={{ width: '100%', display: 'block', border: '1px solid #ccc', marginBottom: 6 }} />
           <div style={{ ...SF, fontSize: 8, color: '#555', textAlign: 'center', marginBottom: 4 }}>
             FID #{fid} · {issueDate}
@@ -318,7 +318,7 @@ function PersonalMintSection({
       {stage === 'done' && coverData && (
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={coverData.imageUrl} alt="Your minted Tribune cover"
+          <img src={coverData.imageUrl} alt="Your minted Miscellany cover"
             style={{ width: '100%', display: 'block', border: '2px solid #111', marginBottom: 8 }} />
           <div style={{ textAlign: 'center', marginBottom: 10 }}>
             <p style={{ ...SF, fontSize: 13, fontWeight: 900, color: '#15803d', margin: '0 0 2px' }}>

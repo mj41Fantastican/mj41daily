@@ -387,7 +387,7 @@ export function SportsPage() {
         {/* Masthead strip */}
         <div className={`flex items-center justify-between px-3 py-2 border-b ${theme.borderLight}`}>
           <div>
-            <div className="text-[8px] uppercase tracking-widest font-bold" style={{ ...SF, color: '#b87333' }}>The Copper Wire</div>
+            <div className="text-[8px] uppercase tracking-widest font-bold" style={{ ...SF, color: '#b87333' }}>The Daily Miscellany</div>
             <div className="text-[13px] font-black uppercase tracking-wide" style={SERIF}>Sports & Scores</div>
           </div>
           <button

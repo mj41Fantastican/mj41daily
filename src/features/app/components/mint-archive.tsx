@@ -119,13 +119,13 @@ export function MintArchive() {
         {/* Masthead */}
         <div className={`border-2 mb-3 ${theme.border}`}>
           <div className={`border-b px-2 py-[6px] flex justify-between items-center ${theme.borderLight} ${theme.fill} ${theme.fillText}`}>
-            <p className="text-[8px] uppercase tracking-[0.2em]" style={SF}>Tribune Archive</p>
+            <p className="text-[8px] uppercase tracking-[0.2em]" style={SF}>Miscellany Archive</p>
             <button onClick={load} className="text-[8px] uppercase tracking-wide active:opacity-50" style={SF}>↻</button>
           </div>
           <div className="px-2 py-3 text-center">
             <p className="text-[20px] font-black uppercase tracking-tight leading-none" style={SERIF}>NFT Mint Archive</p>
             <p className={`text-[9px] mt-1 ${theme.mutedClass}`} style={SF}>
-              Every Tribune NFT ever minted — your permanent record on Base
+              Every Miscellany NFT ever minted — your permanent record on Base
             </p>
           </div>
 
@@ -174,8 +174,8 @@ export function MintArchive() {
             </p>
             <p className={`text-[9px] leading-snug ${theme.mutedClass}`} style={SF}>
               {filter === 'mine'
-                ? 'Mint your first Tribune cover to see it here — yours forever on Base.'
-                : 'When readers mint their personalized Tribune covers, they appear here.'}
+                ? 'Mint your first Miscellany cover to see it here — yours forever on Base.'
+                : 'When readers mint their personalized Miscellany covers, they appear here.'}
             </p>
           </div>
         )}

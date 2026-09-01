@@ -212,7 +212,7 @@ export const nftPaymentTxns = pgTable('nft_payment_txns', {
 });
 
 // ── PERSONAL COVER MINTS ──────────────────────────────────────────────
-// Stores every minted personal Tribune cover. Serial: FCDailyTrib#####.
+// Stores every minted personal Miscellany cover. Serial: FCDailyTrib#####.
 
 export const personalCoverMints = pgTable('personal_cover_mints', {
   id: serial('id').primaryKey(),

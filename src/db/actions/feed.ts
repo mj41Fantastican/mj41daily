@@ -138,7 +138,7 @@ async function fetchNewsCategory(category: NewsCategory): Promise<NewsStory[]> {
     try {
       const res = await fetch(source.url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; DailyTribuneBot/1.0; +https://thedailytribune.fc)",
+          "User-Agent": "Mozilla/5.0 (compatible; DailyMiscellanyBot/1.0; +https://mj41daily.com)",
           "Accept": "application/rss+xml, application/xml, text/xml, */*",
         },
         next: { revalidate: 0 },
@@ -408,7 +408,7 @@ export async function refreshFeed(): Promise<{ success: boolean; error?: string 
         max_tokens: 280,
         messages: [{
           role: "user",
-          content: `You are an on-chain data analyst for The Daily Farcaster Tribune. Generate a compelling daily ON-CHAIN insight about the Base blockchain or Farcaster ecosystem.
+          content: `You are an on-chain data analyst for The Daily Miscellany. Generate a compelling daily ON-CHAIN insight about the Base blockchain or Farcaster ecosystem.
 
 Difficulty: ${isExpert
   ? "MASTERY LEVEL — use precise technical terms: MEV, EIP numbers, gas mechanics, contract opcodes, liquidity math, bridging architecture, protocol fees, etc. Assume reader has deep familiarity with blockchain internals."

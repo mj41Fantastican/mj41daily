@@ -75,14 +75,14 @@ function DailyRobot({ seed }: { seed: string }) {
   return (
     <div className={`border-2 mb-4 ${theme.border}`}>
       <div className={`px-2 py-1 border-b flex items-center justify-between ${theme.borderLight} ${theme.fill} ${theme.fillText}`}>
-        <p className="text-[8px] font-black uppercase tracking-widest" style={SF}>Tribune Mascot</p>
+        <p className="text-[8px] font-black uppercase tracking-widest" style={SF}>Miscellany Mascot</p>
         <p className="text-[7px] uppercase tracking-wide opacity-70" style={SF}>Daily Edition</p>
       </div>
       <div className={`flex items-center gap-3 p-3 ${theme.bg}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={url}
-          alt="Today's Tribune Robot"
+          alt="Today's Miscellany Robot"
           width={80}
           height={80}
           className={`border ${theme.borderLight} shrink-0`}
@@ -90,7 +90,7 @@ function DailyRobot({ seed }: { seed: string }) {
         />
         <div>
           <p className="text-[13px] font-black leading-tight" style={SERIF}>
-            Meet Today&apos;s Tribune Robot
+            Meet Today&apos;s Miscellany Robot
           </p>
           <p className={`text-[9px] leading-snug mt-1 ${theme.mutedClass}`} style={SF}>
             A new robot is generated for each issue. This one was assigned to today&apos;s edition.
@@ -360,7 +360,7 @@ export function PageTwo() {
         {data && !loading && (
           <>
             {/* ── DAILY ROBOT MASCOT ── */}
-            <SectionRule label="Tribune Identity" />
+            <SectionRule label="Miscellany Identity" />
             <DailyRobot seed={data.roboSeed} />
 
             {/* ── FARCASTER NETWORK PULSE — summary stats ── */}
@@ -529,7 +529,7 @@ export function PageTwo() {
             {/* ── FOOTER ── */}
             <div className={`border-t-2 pt-2 pb-4 text-center ${theme.border}`}>
               <p className={`text-[7px] uppercase tracking-[0.25em] ${theme.mutedClass}`} style={SF}>
-                End of Page Two · The Daily Farcaster Tribune
+                End of Page Two · The Daily Miscellany
               </p>
               <p className={`text-[7px] mt-1 ${theme.mutedClass}`} style={SF}>
                 Refreshed {new Date(data.generatedAt).toLocaleTimeString()}

@@ -23,7 +23,7 @@ export async function POST() {
         },
         body: JSON.stringify({
           network: "base",
-          name: "The Daily Tribune: A Farcaster Newspaper",
+          name: "The Daily Miscellany: A Compendium Of Interesting Things",
           symbol: "TRIB",
           description:
             "Daily curated newspaper for Farcaster. Each issue is a unique NFT capturing the top stories, trending casts, and channel highlights of that day.",

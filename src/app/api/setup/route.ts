@@ -105,7 +105,7 @@ export async function GET() {
         tagline text DEFAULT 'All the news that''s fit to cast',
         editor_handle text DEFAULT '@mj41fantastican',
         color_scheme text DEFAULT 'bw',
-        paper_name text DEFAULT 'The Daily Tribune',
+        paper_name text DEFAULT 'The Daily Miscellany',
         channel_url text DEFAULT '',
         website_url text DEFAULT 'dailyfarcaster.fc',
         editorial_note_enabled boolean DEFAULT false,
@@ -114,7 +114,7 @@ export async function GET() {
         updated_at timestamp DEFAULT now()
       )`,
 
-      // ── Personal cover mints — minted parody Tribune covers
+      // ── Personal cover mints — minted parody Miscellany covers
       `CREATE TABLE IF NOT EXISTS personal_cover_mints (
         id serial PRIMARY KEY,
         serial text NOT NULL UNIQUE,
@@ -139,7 +139,7 @@ export async function GET() {
       // ── Backfill new paper_settings columns (safe on existing tables)
       `ALTER TABLE paper_settings
         ADD COLUMN IF NOT EXISTS color_scheme text DEFAULT 'bw',
-        ADD COLUMN IF NOT EXISTS paper_name text DEFAULT 'The Daily Tribune',
+        ADD COLUMN IF NOT EXISTS paper_name text DEFAULT 'The Daily Miscellany',
         ADD COLUMN IF NOT EXISTS channel_url text DEFAULT '',
         ADD COLUMN IF NOT EXISTS website_url text DEFAULT 'dailyfarcaster.fc',
         ADD COLUMN IF NOT EXISTS editorial_note_enabled boolean DEFAULT false,

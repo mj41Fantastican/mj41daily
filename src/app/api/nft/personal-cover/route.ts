@@ -20,7 +20,7 @@ function buildHeadline(username: string): string {
  * GET /api/nft/personal-cover?fid=12345
  *
  * Fetches the user's Farcaster profile, builds a personalized
- * AI image prompt, and generates a parody Tribune front page
+ * AI image prompt, and generates a parody Miscellany front page
  * starring the user. Payment must be completed client-side first.
  */
 export async function GET(req: NextRequest) {
@@ -69,25 +69,25 @@ export async function GET(req: NextRequest) {
     const prompt = TODAY_IS_420
       ? [
           "Classic American broadsheet newspaper front page. Black ink on white newsprint. Dramatic editorial design. Square 1:1.",
-          `Top masthead in bold serif capitals: "THE DAILY FARCASTER TRIBUNE — 4/20 SPECIAL EDITION".`,
+          `Top masthead in bold serif capitals: "THE DAILY MISCELLANY — 4/20 SPECIAL EDITION".`,
           `Below masthead: left side reads "${issueNumber}", right side reads "${today}". Thin rule line separating masthead from content.`,
           pfpUrl
             ? `Center: a large circular portrait medallion of the featured person (use the face from the source image). The person has extremely glassy, bloodshot, half-closed eyes and a huge dopey grin. Faint smoke wisps curling around the portrait. Ink-engraving illustration style.`
             : `Center: a large circular silhouette medallion with smoke wisps. Ink-engraving illustration style.`,
           `Bold serif headline beneath portrait: "${headline}".`,
-          `Sub-headline in smaller serif italic: "420 Commemorative Print — The Daily Farcaster Tribune".`,
+          `Sub-headline in smaller serif italic: "420 Commemorative Print — The Daily Miscellany".`,
           "Decorative marijuana leaf motifs in the border corners. Column rules on left and right. Celebratory stoner holiday front-page feel.",
           "No color. High-contrast black ink only. Typographic, no photography.",
         ].join(" ")
       : [
           "Classic American broadsheet newspaper front page. Black ink on white newsprint. Dramatic editorial design. Square 1:1.",
-          `Top masthead in bold serif capitals: "THE DAILY FARCASTER TRIBUNE".`,
+          `Top masthead in bold serif capitals: "THE DAILY MISCELLANY".`,
           `Below masthead: left side reads "${issueNumber}", right side reads "${today}". Thin rule line separating masthead from content.`,
           pfpUrl
             ? `Center: a large circular portrait medallion of the featured person (use the face from the source image). Ink-engraving illustration style.`
             : `Center: a large circular silhouette medallion. Ink-engraving illustration style.`,
           `Bold serif headline beneath portrait: "${headline}".`,
-          `Sub-headline in smaller serif italic: "Exclusive Report — The Daily Farcaster Tribune".`,
+          `Sub-headline in smaller serif italic: "Exclusive Report — The Daily Miscellany".`,
           "Decorative column rules on left and right. Confetti dots along the border. Celebratory front-page edition feel.",
           "No color. High-contrast black ink only. Typographic, no photography.",
         ].join(" ");

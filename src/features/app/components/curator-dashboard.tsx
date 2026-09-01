@@ -347,7 +347,7 @@ export function CuratorDashboard() {
   // Airdrop default
   const [airdropDefault, setAirdropDefault] = useState(false);
   // Paper Identity
-  const [paperName, setPaperName] = useState('The Copper Wire: A Daily Miscellany');
+  const [paperName, setPaperName] = useState('The Daily Miscellany: A Compendium Of Interesting Things');
   const [editorHandle, setEditorHandle] = useState('@mj41fantastican');
   const [paperTagline, setPaperTagline] = useState("All the news that's fit to cast");
   const [issuePrice, setIssuePrice] = useState('$0.041');
@@ -567,7 +567,7 @@ export function CuratorDashboard() {
     setRwacMint(paperSettings.rwacMintAmount ?? '41041');
     setEnabledCurrencies((paperSettings.enabledCurrencies ?? 'USDC,ETH,$RWACu').split(','));
     setAirdropDefault(paperSettings.airdropDefault ?? false);
-    setPaperName(paperSettings.paperName ?? 'The Copper Wire: A Daily Miscellany');
+    setPaperName(paperSettings.paperName ?? 'The Daily Miscellany: A Compendium Of Interesting Things');
     setEditorHandle(paperSettings.editorHandle ?? '@mj41fantastican');
     setPaperTagline(paperSettings.tagline ?? "All the news that's fit to cast");
     setIssuePrice(paperSettings.coverPrice ?? '$0.041');
@@ -1474,7 +1474,7 @@ export function CuratorDashboard() {
                         <span className="text-[6px] font-black tracking-widest uppercase"
                           style={{ color: preview.gradient ? '#fff' : preview.bg, fontFamily: 'Georgia,serif' }}
                         >
-                          THE TRIBUNE
+                          THE MISCELLANY
                         </span>
                       </div>
                       <div className="flex items-center justify-between mt-auto px-[2px]">
@@ -1669,7 +1669,7 @@ export function CuratorDashboard() {
                             className="w-full px-2 py-[6px] text-[9px] font-bold uppercase tracking-wide text-left border-t active:opacity-70 disabled:opacity-50"
                             style={{ ...SF, borderColor: '#e5e7eb', background: '#fafafa', color: '#6b7280' }}
                           >
-                            {expanding === slotKey ? '⏳ Writing article...' : '✨ Expand into Tribune article'}
+                            {expanding === slotKey ? '⏳ Writing article...' : '✨ Expand into a full article'}
                           </button>
                         )}
                       </div>
@@ -2109,7 +2109,7 @@ export function CuratorDashboard() {
                 <p className={`text-[8px] uppercase tracking-widest font-black mb-2 ${theme.mutedClass}`} style={SF}>📰 Paper Identity</p>
                 <div className="space-y-2">
                   {[
-                    { label: 'Paper Name', value: paperName, set: setPaperName, placeholder: 'The Copper Wire: A Daily Miscellany' },
+                    { label: 'Paper Name', value: paperName, set: setPaperName, placeholder: 'The Daily Miscellany: A Compendium Of Interesting Things' },
                     { label: 'Editor Handle', value: editorHandle, set: setEditorHandle, placeholder: '@mj41fantastican' },
                     { label: 'Nameplate Tagline', value: paperTagline, set: setPaperTagline, placeholder: "All the news that's fit to cast" },
                     { label: 'Cover Price (display)', value: issuePrice, set: setIssuePrice, placeholder: '$0.041' },

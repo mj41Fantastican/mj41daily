@@ -227,7 +227,7 @@ async function handleShareImage(
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "row", backgroundColor: "#000000", paddingTop: 12, paddingBottom: 12, paddingLeft: 32, paddingRight: 32, justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
-              <div style={{ display: "flex", fontSize: 13, color: "#ffffff", letterSpacing: 2, textTransform: "uppercase", fontWeight: 700, fontFamily: SANS }}>Read The Copper Wire on Farcaster</div>
+              <div style={{ display: "flex", fontSize: 13, color: "#ffffff", letterSpacing: 2, textTransform: "uppercase", fontWeight: 700, fontFamily: SANS }}>Read The Daily Miscellany on Farcaster</div>
               <div style={{ display: "flex", fontSize: 10, color: "#aaaaaa", fontFamily: SANS }}>AN MJ41 PUBLICATION</div>
             </div>
           )}
@@ -310,7 +310,7 @@ async function handleShareImage(
         <div style={{ display: "flex", height: "1px", backgroundColor: INK, marginBottom: "5px" }} />
         <div style={{ display: "flex", flexDirection: "row", backgroundColor: INK, padding: "9px 14px", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", fontSize: "11px", color: WHITE, letterSpacing: "2px", textTransform: "uppercase", fontWeight: 700, fontFamily: SANS }}>
-            Read The Copper Wire on Farcaster
+            Read The Daily Miscellany on Farcaster
           </div>
           <div style={{ display: "flex", fontSize: "9px", color: "#aaaaaa", fontFamily: SANS }}>
             An MJ41 Publication

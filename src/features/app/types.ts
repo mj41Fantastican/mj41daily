@@ -1,4 +1,4 @@
-// ── THE DAILY TRIBUNE — APP-WIDE TYPES ───────────────────────
+// ── THE DAILY MISCELLANY — APP-WIDE TYPES ───────────────────────
 
 // ── THEME ────────────────────────────────────────────────────
 

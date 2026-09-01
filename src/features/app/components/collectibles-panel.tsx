@@ -164,7 +164,7 @@ export function CollectiblesPanel({ refreshTrigger = 0 }: { refreshTrigger?: num
         {/* Header */}
         <div className={`border-2 mb-3 ${theme.border}`}>
           <div className={`px-2 py-[6px] flex justify-between items-center border-b ${theme.borderLight} ${theme.fill} ${theme.fillText}`}>
-            <p className="text-[8px] uppercase tracking-[0.2em]" style={SF}>Tribune Collectibles</p>
+            <p className="text-[8px] uppercase tracking-[0.2em]" style={SF}>Miscellany Collectibles</p>
             <button
               onClick={load}
               className="text-[8px] uppercase tracking-wide active:opacity-50"
@@ -235,7 +235,7 @@ export function CollectiblesPanel({ refreshTrigger = 0 }: { refreshTrigger?: num
             </p>
             <p className={`text-[9px] leading-snug ${theme.mutedClass}`} style={SF}>
               {tab === 'mine'
-                ? 'Generate and mint your personal Tribune cover from the Front Page to start your collection.'
+                ? 'Generate and mint your personal Miscellany cover from the Front Page to start your collection.'
                 : 'Be the first to mint a personal cover edition.'}
             </p>
           </div>

@@ -50,7 +50,7 @@ function ArchiveDetail({
           </div>
           <div className="text-center px-2 py-2">
             <div className="leading-none font-black" style={{ fontSize: '1.6rem', letterSpacing: '-0.02em' }}>
-              THE DAILY FARCASTER TRIBUNE
+              THE DAILY MISCELLANY
             </div>
             {selectedIssue.autoPublished && (
               <div

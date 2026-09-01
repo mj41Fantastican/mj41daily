@@ -9,7 +9,7 @@ const SF = { fontFamily: 'Arial,sans-serif' };
 // ── Your pinned apps — always available ───────────────────────────────────────
 const PINNED_APPS: Array<{ name: string; author: string; desc: string; url: string; emoji: string }> = [
   {
-    name: 'The Copper Wire',
+    name: 'The Daily Miscellany',
     author: '@mj41fantastican',
     desc: 'Daily curated Farcaster miscellany with top stories, trending casts, and NFT covers.',
     url: '', // self-referential — no external link needed
@@ -56,7 +56,7 @@ const PINNED_APPS: Array<{ name: string; author: string; desc: string; url: stri
 // All @mj41fantastican apps; 4 rotate in each day
 const APP_POOL: Array<{ name: string; author: string; desc: string; url: string; emoji: string }> = [
   {
-    name: 'The Copper Wire',
+    name: 'The Daily Miscellany',
     author: '@mj41fantastican',
     desc: 'Daily curated Farcaster miscellany with top stories, trending casts, and NFT covers.',
     url: 'https://farcaster.xyz/miniapps/THgZKwBy_DWr/the-copper-wire-miscellany',

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         max_tokens: 400,
         messages: [{
           role: "user",
-          content: `You are a journalist writing for The Daily Farcaster Tribune, a newspaper about the Farcaster social protocol ecosystem.
+          content: `You are a journalist writing for The Daily Miscellany, a newspaper about the Farcaster social protocol ecosystem.
 
 Write a concise, engaging news story body (3-4 paragraphs, ~200-250 words) for this headline:
 HEADLINE: ${headline}
@@ -68,7 +68,7 @@ Rules: No hashtags. No emojis unless extremely apt. Sound like a journalist, not
         max_tokens: 280,
         messages: [{
           role: "user",
-          content: `You are an on-chain data analyst for The Daily Farcaster Tribune. Generate a compelling daily ON-CHAIN insight about the Base blockchain or Farcaster ecosystem.
+          content: `You are an on-chain data analyst for The Daily Miscellany. Generate a compelling daily ON-CHAIN insight about the Base blockchain or Farcaster ecosystem.
 
 Difficulty: ${difficulty === "expert" ? "MASTERY LEVEL — use precise technical terms: MEV, EIP numbers, gas mechanics, contract opcodes, liquidity math, bridging architecture, etc. Assume deep familiarity." : "NOVICE LEVEL — explain one interesting on-chain fact in plain English that anyone can understand and find fascinating. No jargon."}
 

@@ -1,4 +1,4 @@
-// ── THE DAILY FARCASTER TRIBUNE — MOCK DATA ────────────────────────────
+// ── THE DAILY MISCELLANY — MOCK DATA ────────────────────────────
 // All hardcoded data lives here. Phase 5 will replace with real API calls.
 
 import type {
@@ -33,13 +33,13 @@ export const MOCK_ISSUE: IssueMetadata = {
 export const MOCK_MAIN_STORY: MainStory = {
   headline: "Today's Issue Is Being Prepared — Check Back Shortly",
   byline: 'Editorial Staff · Coming Soon',
-  body: `Today marks the first edition of The Daily Farcaster Tribune — a daily newspaper built for and on Farcaster. Our mission is simple: to make sure news travels more evenly across the network.
+  body: `Today marks the first edition of The Daily Miscellany — a daily newspaper built for and on Farcaster. Our mission is simple: to make sure news travels more evenly across the network.
 
 Farcaster's algorithmic feeds favor the already-seen. Large accounts get larger. Smaller builders, writers, and creators get buried. We're here to fix that — one front page at a time.
 
 We're actively recruiting writers and contributors. We're even exploring bringing on a dedicated journalist to give coverage the depth that pure curation can't provide.
 
-Welcome to The Daily Farcaster Tribune. Issue #2 drops tomorrow.`,
+Welcome to The Daily Miscellany. Issue #2 drops tomorrow.`,
 };
 
 export const MOCK_SECONDARY_LEFT: SecondaryStory = {
@@ -251,7 +251,7 @@ export const MOCK_ARCHIVE: ArchiveIssue[] = [
     vol: 1,
     date: 'Sat, Mar 7 2026',
     price: '$0.041',
-    lead: 'The Daily Farcaster Tribune Launches: A New Voice for the Farcaster Universe',
+    lead: 'The Daily Miscellany Launches: A New Voice for the Farcaster Universe',
     secondary: ['Bracky Shuts Its Doors', 'Cast 0xdf7b38f4 Sparks Community Wave'],
     mints: 142,
     readers: 891,
