@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "readyToPublish": true,
+  "currentPhase": 6,
+  "startedAt": "2026-03-07T03:02:03.566Z",
+  "lastUpdatedAt": "2026-03-07T14:26:13.976Z",
+  "completedAt": "2026-03-07T13:26:00.686Z",
+  "phases": {
+    "1": {
+      "name": "planning",
+      "displayName": "Planning Your App",
+      "status": "completed",
+      "tasks": {
+        "sketch-created": "completed",
+        "user-approved": "completed",
+        "specs-documented": "completed"
+      }
+    },
+    "2": {
+      "name": "theming",
+      "displayName": "Theming & Styling",
+      "status": "completed",
+      "tasks": {
+        "preferences-gathered": "completed",
+        "style-brief-created": "completed",
+        "app-settings-updated": "completed",
+        "assets-generated": "completed",
+        "theme-updated": "completed",
+        "user-approved": "completed"
+      }
+    },
+    "3": {
+      "name": "structural-foundation",
+      "displayName": "Building the Foundation",
+      "status": "completed",
+      "tasks": {
+        "types-extracted": "completed",
+        "mocks-created": "completed",
+        "layout-converted": "completed",
+        "components-extracted": "completed",
+        "validation-passed": "completed"
+      }
+    },
+    "4": {
+      "name": "feature-planning",
+      "displayName": "Planning the Details",
+      "status": "completed",
+      "tasks": {
+        "mocks-analyzed": "completed",
+        "wiring-plan-created": "completed",
+        "features-populated": "completed"
+      }
+    },
+    "5": {
+      "name": "feature-wiring",
+      "displayName": "Bringing It to Life",
+      "status": "completed",
+      "tasks": {
+        "all-features-wired": "completed",
+        "share-button-wired": "completed",
+        "mocks-file-empty": "completed"
+      },
+      "features": {
+        "issue-content": {
+          "type": "database",
+          "mockName": "MOCK_ISSUE, MOCK_MAIN_STORY, MOCK_SECONDARY_LEFT, MOCK_SECONDARY_RIGHT, MOCK_MID_STORIES, MOCK_BRIEFS, MOCK_TEASERS",
+          "status": "completed",
+          "subSteps": {
+            "schema-created": "completed",
+            "actions-created": "completed",
+            "hook-created": "completed",
+            "mock-swapped": "completed",
+            "validated": "completed"
+          }
+        },
+        "neynar-feed": {
+          "type": "social",
+          "mockName": "MOCK_FEED",
+          "status": "completed",
+          "subSteps": {
+            "schema-created": "completed",
+            "actions-created": "completed",
+            "cron-route-created": "completed",
+            "hook-created": "completed",
+            "mock-swapped": "completed",
+            "validated": "completed"
+          }
+        },
+        "paywall-blockchain": {
+          "type": "blockchain",
+          "mockName": "handlePay setTimeout mock in PaywallGate",
+          "status": "completed",
+          "subSteps": {
+            "provider-added": "completed",
+            "schema-created": "completed",
+            "actions-created": "completed",
+            "hook-created": "completed",
+            "mock-swapped": "completed",
+            "validated": "completed"
+          }
+        },
+        "archive-issues": {
+          "type": "database",
+          "mockName": "MOCK_ARCHIVE",
+          "status": "completed",
+          "subSteps": {
+            "actions-created": "completed",
+            "hook-created": "completed",
+            "mock-swapped": "completed",
+            "validated": "completed"
+          }
+        },
+        "paper-settings": {
+          "type": "database",
+          "mockName": "SettingsPanel local useState (all fields)",
+          "status": "completed",
+          "subSteps": {
+            "schema-created": "completed",
+            "actions-created": "completed",
+            "hook-created": "completed",
+            "mock-swapped": "completed",
+            "validated": "completed"
+          }
+        },
+        "fid-auth-gating": {
+          "type": "social",
+          "mockName": "none — tabs currently open to all users",
+          "status": "completed",
+          "subSteps": {
+            "hook-created": "completed",
+            "mock-swapped": "completed",
+            "validated": "completed"
+          }
+        },
+        "share-button": {
+          "type": "sharing",
+          "status": "completed",
+          "subSteps": {
+            "share-manager-delegated": "completed",
+            "validated": "completed"
+          }
+        }
+      }
+    },
+    "6": {
+      "name": "post-launch",
+      "displayName": null,
+      "status": "in_progress",
+      "tasks": {}
+    }
+  },
+  "metadata": {}
+}

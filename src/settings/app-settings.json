@@ -1,0 +1,13 @@
+{
+  "name": "The Copper Wire Miscellany",
+  "shortName": "Copper Wire",
+  "subtitle": "Daily Miscellany for Farcaster",
+  "description": "Daily curated newspaper for Farcaster. Top stories, trending casts, channel highlights, and token news in classic broadsheet format.",
+  "shortDescription": "Your daily Farcaster miscellany with curated headlines and trending stories.",
+  "primaryCategory": "news-media",
+  "tags": ["news", "media", "farcaster", "daily", "newspaper"],
+  "splashBackgroundColor": "#ffffff",
+  "tagline": "All the news thats fit to cast",
+  "requiredChains": ["eip155:8453", "eip155:1"],
+  "shareButtonTitle": "Read Today's Copper Wire"
+}

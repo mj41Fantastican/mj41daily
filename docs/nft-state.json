@@ -1,0 +1,35 @@
+{
+  "collection": {
+    "name": "The Daily Tribune: A Farcaster Newspaper",
+    "symbol": "TRIB",
+    "slug": "the-daily-tribune",
+    "description": "Daily curated newspaper for Farcaster. Each issue is a unique NFT capturing the top stories, trending casts, and channel highlights of that day.",
+    "collectionImagePrompt": "Classic newspaper front page banner in black and white ink style. Large masthead reading 'THE DAILY TRIBUNE' with ornate serif typography and thick rule lines above and below. Subtitle: 'A Farcaster Newspaper'. Clean editorial broadsheet aesthetic, aged newsprint texture, dramatic and classic. Wide banner composition, no color, pure ink on paper.",
+    "tokenImagePrompt": "Classic newspaper front page in black and white ink style. Large masthead reading THE DAILY TRIBUNE at top with thick rule lines. Bold serif headline text below. Aged newsprint texture. Square 1:1 composition, no photographs, pure typographic editorial design, no color.",
+    "tokenNamePrefix": "The Daily Tribune Issue #",
+    "mintPattern": "preview-first",
+    "pricingTier": "paid",
+    "network": "base",
+    "maxSupply": 0,
+    "royaltyBps": 0,
+    "maxPerWallet": 0,
+    "maxPerTx": 0,
+    "pricePerTokenWei": "4000000000000",
+    "deploy": {
+      "status": "completed",
+      "contractAddress": "0x7b80abcfb1feb4dea794358361c625481727ff5d",
+      "collectionImageUrl": "https://cdn.neynar.com/nft/generated/4a71b5c4-6cf0-4321-9638-0f8d033b6f8b/1772902576753-473f0484-01a9-4da4-9029-ca0216088d1a.png",
+      "transactionHash": "0x3dc123d7756c1ca48ca6cae1b1b8ab8020d4840018e726def2438a65149badc0",
+      "error": null
+    }
+  },
+  "routes": {
+    "mint": { "status": "completed", "error": null },
+    "preview": { "status": "completed", "error": null },
+    "price": { "status": "completed", "error": null }
+  },
+  "client": {
+    "sketch": { "status": "skipped", "error": null },
+    "wire": { "status": "completed", "error": null }
+  }
+}
