@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { listIssues, getIssueStats } from "@/db/actions/issues";
 import { getUserAccessList } from "@/db/actions/access";
 import type { ArchiveIssue } from "@/features/app/types";
-import { useFarcasterUser } from "@/neynar-farcaster-sdk/mini";
+import { useViewer } from "@/hooks/use-viewer";
 
 export type ArchiveData = {
   issues: ArchiveIssue[];
@@ -19,7 +19,7 @@ export type ArchiveData = {
  * Falls back to mock data if DB is empty.
  */
 export function useArchive(): ArchiveData {
-  const { data: user } = useFarcasterUser();
+  const viewer = useViewer();
   const [data, setData] = useState<ArchiveData>({
     issues: [],
     totalMints: 0,
@@ -33,7 +33,9 @@ export function useArchive(): ArchiveData {
       try {
         const [rows, accessIds] = await Promise.all([
           listIssues(),
-          user?.fid ? getUserAccessList(user.fid) : Promise.resolve([] as number[]),
+          viewer.address || viewer.fid
+            ? getUserAccessList({ walletAddress: viewer.address, fid: viewer.fid })
+            : Promise.resolve([] as number[]),
         ]);
 
         if (rows.length === 0) {
@@ -88,7 +90,7 @@ export function useArchive(): ArchiveData {
     }
 
     load();
-  }, [user?.fid]);
+  }, [viewer.address, viewer.fid]);
 
   return data;
 }

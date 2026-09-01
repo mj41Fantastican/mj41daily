@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
+    "@coinbase/wallet-sdk": "^4.3.7",
     "@coingecko/coingecko-typescript": "1.11.3",
     "@farcaster/miniapp-sdk": "0.2.3",
     "@farcaster/miniapp-wagmi-connector": "1.1.1",

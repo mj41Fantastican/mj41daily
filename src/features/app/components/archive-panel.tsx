@@ -157,7 +157,7 @@ export function ArchivePanel() {
 
   async function handleUnlock(archiveIssue: ArchiveIssue) {
     if (user?.fid) {
-      await recordUnlock(user.fid, archiveIssue.issue, 'usdc');
+      await recordUnlock({ fid: user.fid }, archiveIssue.issue, 'usdc');
     }
     setLocalUnlocked((u) => [...u, archiveIssue.issue]);
   }

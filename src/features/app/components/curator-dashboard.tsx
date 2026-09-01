@@ -14,6 +14,7 @@ import { publishIssue, getNextIssueNumber, deleteAllIssues, scheduleIssue, getSc
 import { resetAccess, resetAllStats, getIssueStats, type IssueStats } from '@/db/actions/access';
 import { refreshFeed } from '@/db/actions/feed';
 import { useFarcasterUser } from '@/neynar-farcaster-sdk/mini';
+import { useViewer } from '@/hooks/use-viewer';
 import { PinnedTokensEditor } from '@/features/app/components/pinned-tokens-editor';
 import { MiniAppShowcaseEditor, type AppBrief } from '@/features/app/components/mini-app-showcase-editor';
 import { getAirdropIssues, getAirdropWhitelist, setAirdropEnabled, type AirdropEntry } from '@/db/actions/airdrop';
@@ -297,6 +298,7 @@ export function CuratorDashboard() {
   const { feed } = useDailyFeed();
   const issue = useCurrentIssue();
   const { data: farcasterUser } = useFarcasterUser();
+  const viewer = useViewer();
   const [picks, setPicks] = useState<Picks>({});
   const [writeIns, setWriteIns] = useState<WriteIns>({});
   const [writeInMode, setWriteInMode] = useState<WriteInMode>({});
@@ -2277,15 +2279,15 @@ export function CuratorDashboard() {
             </p>
             <button
               onClick={async () => {
-                if (!farcasterUser?.fid || resetting) return;
+                if ((!viewer.address && !viewer.fid) || resetting) return;
                 setResetting(true);
                 setResetDone(false);
-                await resetAccess(farcasterUser.fid);
+                await resetAccess({ fid: viewer.fid, walletAddress: viewer.address });
                 setResetting(false);
                 setResetDone(true);
                 setTimeout(() => setResetDone(false), 3000);
               }}
-              disabled={resetting || !farcasterUser?.fid}
+              disabled={resetting || (!viewer.address && !viewer.fid)}
               className={`w-full py-2 text-[10px] font-bold uppercase tracking-wide border-2 min-h-[44px] transition-all ${
                 resetDone
                   ? 'border-green-500 text-green-700 bg-green-50'

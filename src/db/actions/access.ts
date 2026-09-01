@@ -2,33 +2,72 @@
 
 import { db } from "@/neynar-db-sdk/db";
 import { readerAccess, issueMints } from "@/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 import { addToAirdropWhitelist } from "@/db/actions/airdrop";
 
 /**
- * Record that a user has unlocked (read access) an issue.
- * If the issue has airdrop enabled, the wallet address is added to the whitelist.
+ * Who a reader is.
+ *
+ * Every reader has a wallet; only readers arriving through Farcaster have an FID.
+ * Access is therefore matched on either credential, so a reader who pays inside
+ * Farcaster and comes back in a browser with the same wallet keeps their access —
+ * and a browser reader with no FID can be recorded at all, which the old
+ * FID-only schema made impossible.
+ */
+export type ReaderIdentity = {
+  walletAddress?: string | null;
+  fid?: number | null;
+};
+
+/** Normalise once, so casing never causes a missed match. */
+function normalize(identity: ReaderIdentity) {
+  return {
+    walletAddress: identity.walletAddress ? identity.walletAddress.toLowerCase() : null,
+    fid: identity.fid ?? null,
+  };
+}
+
+/** Match rows belonging to this reader by either credential. */
+function identityMatch(
+  table: typeof readerAccess | typeof issueMints,
+  identity: ReaderIdentity,
+) {
+  const { walletAddress, fid } = normalize(identity);
+  const clauses = [];
+  if (walletAddress) clauses.push(eq(table.walletAddress, walletAddress));
+  if (fid) clauses.push(eq(table.fid, fid));
+  if (clauses.length === 0) return undefined;
+  return clauses.length === 1 ? clauses[0] : or(...clauses);
+}
+
+/**
+ * Record that a reader has unlocked an issue.
+ * If the issue has airdrop enabled, the wallet is added to the whitelist.
  */
 export async function recordUnlock(
-  fid: number,
+  identity: ReaderIdentity,
   issueId: number,
   paymentMethod: "usdc" | "eth" | "rwac",
   txHash?: string,
-  walletAddress?: string,
 ) {
+  const { walletAddress, fid } = normalize(identity);
+  if (!walletAddress && !fid) {
+    return { success: false, error: "No wallet or Farcaster ID to record against" };
+  }
   try {
     await db.insert(readerAccess).values({
+      walletAddress,
       fid,
       issueId,
       accessType: "read",
       paymentMethod,
       txHash: txHash ?? null,
     });
-    // Fire-and-forget airdrop whitelist — only inserts if issue has airdrop enabled
+    // Fire-and-forget — only inserts if the issue has airdrop enabled
     if (walletAddress) {
       addToAirdropWhitelist({
         issueId,
-        fid,
+        fid: fid ?? 0,
         walletAddress,
         accessType: "read",
         paymentMethod,
@@ -43,20 +82,23 @@ export async function recordUnlock(
 }
 
 /**
- * Record that a user has minted (owned) an issue NFT.
- * Also grants read access and adds wallet to airdrop whitelist if enabled.
+ * Record an issue NFT mint. Also grants read access.
  */
 export async function recordMint(
-  fid: number,
+  identity: ReaderIdentity,
   issueId: number,
   txHash: string,
   paymentMethod: "usdc" | "eth" | "rwac" = "usdc",
-  walletAddress?: string,
 ) {
+  const { walletAddress, fid } = normalize(identity);
+  if (!walletAddress && !fid) {
+    return { success: false, error: "No wallet or Farcaster ID to record against" };
+  }
   try {
     await Promise.all([
-      db.insert(issueMints).values({ fid, issueId, txHash }),
+      db.insert(issueMints).values({ walletAddress, fid, issueId, txHash }),
       db.insert(readerAccess).values({
+        walletAddress,
         fid,
         issueId,
         accessType: "mint",
@@ -64,11 +106,10 @@ export async function recordMint(
         txHash,
       }),
     ]);
-    // Fire-and-forget airdrop whitelist — only inserts if issue has airdrop enabled
     if (walletAddress) {
       addToAirdropWhitelist({
         issueId,
-        fid,
+        fid: fid ?? 0,
         walletAddress,
         accessType: "mint",
         paymentMethod,
@@ -82,15 +123,18 @@ export async function recordMint(
   }
 }
 
-/**
- * Check if a user has any access (read or mint) to an issue.
- */
-export async function hasAccess(fid: number, issueId: number): Promise<boolean> {
+/** Whether this reader has any access — read or mint — to an issue. */
+export async function hasAccess(
+  identity: ReaderIdentity,
+  issueId: number,
+): Promise<boolean> {
+  const match = identityMatch(readerAccess, identity);
+  if (!match) return false;
   try {
     const rows = await db
-      .select()
+      .select({ id: readerAccess.id })
       .from(readerAccess)
-      .where(and(eq(readerAccess.fid, fid), eq(readerAccess.issueId, issueId)))
+      .where(and(match, eq(readerAccess.issueId, issueId)))
       .limit(1);
     return rows.length > 0;
   } catch (error) {
@@ -99,15 +143,15 @@ export async function hasAccess(fid: number, issueId: number): Promise<boolean> 
   }
 }
 
-/**
- * Reset all access records for a user (dev/testing only).
- * Clears both read unlocks and mint records.
- */
-export async function resetAccess(fid: number): Promise<{ success: boolean }> {
+/** Clear a reader's access records. Editor dev tool. */
+export async function resetAccess(identity: ReaderIdentity): Promise<{ success: boolean }> {
+  const accessMatch = identityMatch(readerAccess, identity);
+  const mintMatch = identityMatch(issueMints, identity);
+  if (!accessMatch || !mintMatch) return { success: false };
   try {
     await Promise.all([
-      db.delete(readerAccess).where(eq(readerAccess.fid, fid)),
-      db.delete(issueMints).where(eq(issueMints.fid, fid)),
+      db.delete(readerAccess).where(accessMatch),
+      db.delete(issueMints).where(mintMatch),
     ]);
     return { success: true };
   } catch (error) {
@@ -116,15 +160,15 @@ export async function resetAccess(fid: number): Promise<{ success: boolean }> {
   }
 }
 
-/**
- * Get all issue IDs the user has access to.
- */
-export async function getUserAccessList(fid: number): Promise<number[]> {
+/** Every issue id this reader can open. */
+export async function getUserAccessList(identity: ReaderIdentity): Promise<number[]> {
+  const match = identityMatch(readerAccess, identity);
+  if (!match) return [];
   try {
     const rows = await db
       .select({ issueId: readerAccess.issueId })
       .from(readerAccess)
-      .where(eq(readerAccess.fid, fid));
+      .where(match);
     return [...new Set(rows.map((r) => r.issueId))];
   } catch (error) {
     console.error("Failed to get user access list:", error);

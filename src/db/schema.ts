@@ -96,7 +96,11 @@ export const dailyFeed = pgTable("daily_feed", {
 
 export const readerAccess = pgTable("reader_access", {
   id: serial("id").primaryKey(),
-  fid: integer("fid").notNull(),
+  // Wallet address, lowercased — the identity every reader has, through either
+  // door. Nullable only so the 14 pre-existing FID-only rows survive migration.
+  walletAddress: text("wallet_address"),
+  // Farcaster ID, present only for readers who arrived through Farcaster.
+  fid: integer("fid"),
   issueId: integer("issue_id").notNull(),
   accessType: text("access_type").notNull(),           // 'read' | 'mint'
   paymentMethod: text("payment_method").notNull(),     // 'usdc' | 'eth' | 'rwac'
@@ -109,7 +113,8 @@ export const readerAccess = pgTable("reader_access", {
 
 export const issueMints = pgTable("issue_mints", {
   id: serial("id").primaryKey(),
-  fid: integer("fid").notNull(),
+  walletAddress: text("wallet_address"),
+  fid: integer("fid"),
   issueId: integer("issue_id").notNull(),
   txHash: text("tx_hash").notNull(),
   mintedAt: timestamp("minted_at").notNull().defaultNow(),
@@ -171,8 +176,8 @@ export const airdropWhitelist = pgTable("airdrop_whitelist", {
 
 export const subscribers = pgTable("subscribers", {
   id: serial("id").primaryKey(),
-  fid: integer("fid").notNull().unique(),
-  walletAddress: text("wallet_address"),
+  fid: integer("fid").unique(),
+  walletAddress: text("wallet_address").unique(),
   username: text("username"),
   subscribedAt: timestamp("subscribed_at").notNull().defaultNow(),
   notificationsEnabled: boolean("notifications_enabled").default(true),
@@ -219,7 +224,8 @@ export const personalCoverMints = pgTable('personal_cover_mints', {
   // Serial number: FCDailyTrib00001, FCDailyTrib00002, …
   serial: text('serial').notNull().unique(),
   serialIndex: integer('serial_index').notNull(),   // raw int for ordering/display
-  fid: integer('fid').notNull(),
+  walletAddress: text('wallet_address'),
+  fid: integer('fid'),
   username: text('username').notNull(),
   displayName: text('display_name').notNull(),
   // NFT data
