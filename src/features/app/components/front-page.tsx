@@ -14,6 +14,8 @@ import { useIsEditor } from '@/hooks/use-is-editor';
 import { WidgetPanel } from '@/features/app/components/widget-panel';
 import type { WidgetId } from '@/features/app/components/widget-panel';
 import { CopperTicker } from '@/features/app/components/copper-ticker';
+import { usePaperSettings } from '@/hooks/use-paper-settings';
+import { PAPER, parseMasthead, mastheadFontSize, mastheadTracking } from '@/config/paper';
 import type { Teaser, TopToken } from '@/features/app/types';
 
 const SF = { fontFamily: 'Arial,sans-serif' };
@@ -203,7 +205,7 @@ function PageTwo({
           </div>
           <div className="text-center px-2 py-2">
             <div className={`text-[9px] tracking-[0.3em] uppercase mb-1 ${theme.mutedClass}`} style={SF}>
-              The Copper Wire — Section {teaser.section}
+              {PAPER.name.split(':')[0].trim()} — Section {teaser.section}
             </div>
             <div className="leading-none text-[1.4rem] font-black uppercase">
               {teaser.section}
@@ -385,6 +387,7 @@ export function FrontPage({
   previewUnlocked?: boolean;
 }) {
   const { theme, setThemeId } = useTheme();
+  const { settings: paperSettings } = usePaperSettings();
 
   const [activeWidgets, setActiveWidgets] = useState<WidgetId[]>(['art', 'weather', 'cat', 'anilist']);
 
@@ -523,6 +526,14 @@ export function FrontPage({
 
   const is420Theme = theme.id === 'four20';
 
+  // The nameplate is set from the paper's own settings, never hardcoded.
+  const masthead = parseMasthead(paperSettings?.paperName || PAPER.name);
+  const mastheadLongest = Math.max(...masthead.lines.map((l) => l.length), 1);
+  const mastheadSize = mastheadFontSize(
+    masthead.lines.reduce((a, b) => (a.length >= b.length ? a : b), ''),
+  );
+  const paperTagline = paperSettings?.tagline || PAPER.tagline;
+
   return (
     <div className={`overflow-y-auto ${theme.bg} ${theme.text}`} style={SERIF}>
       {/* 4/20 animated overlay — rendered outside scroll container, fixed to viewport */}
@@ -558,32 +569,45 @@ export function FrontPage({
               {is420Theme ? 'High Thoughts · Sharp Headlines' : 'An MJ41 Publication · {metadata.version}'.replace('{metadata.version}', metadata.version)}
             </div>
 
-            {/* THE — small, wide-tracked */}
-            <div className="leading-none text-[1rem] font-black uppercase tracking-[0.55em]" style={SERIF}>
-              THE
-            </div>
-            {/* COPPER WIRE — dominant double-decker */}
-            <div className="leading-none font-black uppercase" style={{ ...SERIF, fontSize: '2.6rem', letterSpacing: '-0.01em', lineHeight: 1.0 }}>
-              COPPER
-            </div>
-            <div className="leading-none font-black uppercase" style={{ ...SERIF, fontSize: '2.6rem', letterSpacing: '0.12em', lineHeight: 1.0 }}>
-              WIRE
-            </div>
+            {/* Article — small, wide-tracked, sits above the name */}
+            {masthead.article && (
+              <div className="leading-none text-[1rem] font-black uppercase tracking-[0.55em]" style={SERIF}>
+                {masthead.article}
+              </div>
+            )}
+
+            {/* The name — one or two dominant decks, tracked to fill equal width */}
+            {masthead.lines.map((line, i) => (
+              <div
+                key={`${line}-${i}`}
+                className="leading-none font-black uppercase"
+                style={{
+                  ...SERIF,
+                  fontSize: `${mastheadSize}rem`,
+                  letterSpacing: mastheadTracking(line, mastheadLongest),
+                  lineHeight: 1.0,
+                }}
+              >
+                {line}
+              </div>
+            ))}
 
             {/* Subtitle rule + text */}
-            <div className={`flex items-center gap-2 mt-2 mb-1`}>
-              <div className={`flex-1 h-px ${theme.fill}`} />
-              <span className={`text-[8px] tracking-[0.3em] uppercase font-bold ${theme.mutedClass}`} style={SF}>
-                {is420Theme ? '🌿 A Daily Miscellany 🌿' : 'A Daily Miscellany'}
-              </span>
-              <div className={`flex-1 h-px ${theme.fill}`} />
-            </div>
+            {masthead.subtitle && (
+              <div className={`flex items-center gap-2 mt-2 mb-1`}>
+                <div className={`flex-1 h-px ${theme.fill}`} />
+                <span className={`text-[8px] tracking-[0.3em] uppercase font-bold ${theme.mutedClass}`} style={SF}>
+                  {is420Theme ? `🌿 ${masthead.subtitle} 🌿` : masthead.subtitle}
+                </span>
+                <div className={`flex-1 h-px ${theme.fill}`} />
+              </div>
+            )}
           </div>
 
           {/* Bottom strip — tagline + theme picker */}
           <div className={`border-t px-3 py-[4px] flex items-center justify-between ${theme.borderLight}`}>
             <span className={`text-[8px] uppercase tracking-widest ${theme.mutedClass}`} style={SF}>
-              {is420Theme ? '"Smoke \'em if you got \'em"' : '"All the news that\'s fit to cast"'}
+              {is420Theme ? '"Smoke \'em if you got \'em"' : `"${paperTagline}"`}
             </span>
             <ThemePicker />
           </div>
@@ -912,9 +936,10 @@ export function FrontPage({
             ...(briefs[1] ? { brief2: briefs[1].text.slice(0, 80) } : {}),
             ...(briefs[2] ? { brief3: briefs[2].text.slice(0, 80) } : {}),
           }).toString();
+          const shortName = (paperSettings?.paperName || PAPER.name).split(':')[0].trim();
           const shareText = unlocked
-            ? `${metadata.issueNumber} of The Copper Wire is out 📰\n\n"${mainStory.headline.slice(0, 100)}"\n\nRead the full issue:`
-            : `Today's Copper Wire is out 📰 — "${mainStory.headline.slice(0, 80)}" — tap to read:`;
+            ? `${metadata.issueNumber} of ${shortName} is out 📰\n\n"${mainStory.headline.slice(0, 100)}"\n\nRead the full issue:`
+            : `Today's ${shortName} is out 📰 — "${mainStory.headline.slice(0, 80)}" — tap to read:`;
           return (
             <div className="pb-2 px-2">
               <ShareButton

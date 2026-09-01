@@ -136,7 +136,7 @@ export const paperSettings = pgTable("paper_settings", {
   editorHandle: text("editor_handle").default("@mj41fantastican"),
   // Appearance
   colorScheme: text("color_scheme").default("bw"),
-  paperName: text("paper_name").default("The Copper Wire: A Daily Miscellany"),
+  paperName: text("paper_name").default("The Daily Miscellany: A Compendium Of Interesting Things"),
   // Social / branding
   channelUrl: text("channel_url").default(""),
   websiteUrl: text("website_url").default("dailyfarcaster.fc"),

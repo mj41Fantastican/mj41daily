@@ -16,7 +16,7 @@ const privateConfigSchema = z.object({
   }),
 });
 
-export const privateConfig = privateConfigSchema.parse({
+const rawPrivateConfig = {
   neynarApiKey: process.env.NEYNAR_API_KEY || "",
   neynarWalletId: process.env["NEYNAR_WALLET_ID"] || "",
   coingeckoApiKey:
@@ -27,4 +27,24 @@ export const privateConfig = privateConfigSchema.parse({
     optimism: process.env.OPTIMISM_RPC_URL,
     'base-sepolia': process.env.BASE_SEPOLIA_RPC_URL,
   },
-});
+};
+
+/**
+ * Validate but don't throw.
+ *
+ * This module is evaluated while Next collects page data at build time, where
+ * secrets are legitimately absent — a hard `.parse()` here fails the build
+ * before anyone has a chance to set the variables, which is exactly the
+ * chicken-and-egg that blocks a first deploy. Warn instead, matching how
+ * public-config already behaves, and let the routes that actually need a key
+ * fail at request time with a real error.
+ */
+const parsed = privateConfigSchema.safeParse(rawPrivateConfig);
+if (!parsed.success) {
+  console.warn(
+    "[private-config] missing or invalid environment variables:",
+    parsed.error.issues.map((i) => i.message).join("; "),
+  );
+}
+
+export const privateConfig = rawPrivateConfig;
