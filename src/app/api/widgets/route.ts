@@ -254,6 +254,46 @@ export async function GET(req: NextRequest) {
         });
       }
 
+      // ── Where Earth Quaked ────────────────────────────────────────────────────
+      // USGS publishes every recorded quake as GeoJSON, free and without a key.
+      // The feed is unfiltered, so most entries are microquakes nobody felt; the
+      // column keeps the largest handful, which is what a reader actually wants.
+      case 'quakes': {
+        const res = await fetch(
+          'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson',
+          { next: { revalidate: 900 }, signal: AbortSignal.timeout(8000) },
+        );
+        if (!res.ok) throw new Error(`USGS ${res.status}`);
+        const feed = await res.json();
+
+        type Quake = {
+          properties: { mag: number | null; place: string | null; time: number; url: string; tsunami: number };
+        };
+        const all: Quake[] = feed?.features ?? [];
+        const felt = all.filter((q) => (q.properties.mag ?? 0) >= 2.5);
+        const largest = [...all]
+          .sort((a, b) => (b.properties.mag ?? 0) - (a.properties.mag ?? 0))
+          .slice(0, 6)
+          .map((q) => ({
+            mag: Number((q.properties.mag ?? 0).toFixed(1)),
+            place: (q.properties.place ?? 'Location unknown').replace(/^\d+\s*km\s+/i, ''),
+            time: q.properties.time,
+            url: q.properties.url,
+            tsunami: q.properties.tsunami === 1,
+          }));
+
+        return NextResponse.json({
+          ok: true,
+          data: {
+            total: all.length,
+            felt: felt.length,
+            largest,
+            strongest: largest[0] ?? null,
+            window: '24 hours',
+          },
+        });
+      }
+
       // ── Agify Name-to-Age ─────────────────────────────────────────────────────
       case 'agify': {
         const name = req.nextUrl.searchParams.get('name');

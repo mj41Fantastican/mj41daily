@@ -8,7 +8,7 @@ const SF = { fontFamily: 'Arial,sans-serif' };
 const SERIF = { fontFamily: 'Georgia,"Times New Roman",serif' };
 
 export type WidgetId =
-  | 'weather' | 'cat' | 'anilist' | 'book' | 'color' | 'agify' | 'art';
+  | 'weather' | 'cat' | 'anilist' | 'book' | 'color' | 'agify' | 'art' | 'quakes';
 
 export const WIDGET_META: Record<WidgetId, { label: string; icon: string; desc: string }> = {
   weather: { label: 'Weather', icon: '🌤', desc: 'Live weather by city' },
@@ -18,6 +18,7 @@ export const WIDGET_META: Record<WidgetId, { label: string; icon: string; desc: 
   color:   { label: 'Color of the Day', icon: '🎨', desc: "Today's color via The Color API" },
   agify:   { label: 'Agify', icon: '🎲', desc: 'Guess a name\'s age' },
   art:     { label: 'AIC Artwork', icon: '🖼', desc: 'Daily Art Institute of Chicago piece' },
+  quakes:  { label: 'Where Earth Quaked', icon: '🌋', desc: 'Live seismic wire from USGS' },
 };
 
 // ── Individual widget components ──────────────────────────────────────────────
@@ -508,6 +509,92 @@ interface WidgetPanelProps {
   activeWidgets: WidgetId[];
 }
 
+/**
+ * Where Earth Quaked — the seismic wire.
+ *
+ * USGS records a few hundred quakes a day, almost all of them too small to feel.
+ * Printing the count alongside the largest few gives the reader both the scale of
+ * the day and the ones that actually mattered.
+ */
+function QuakeWidget() {
+  const { theme } = useTheme();
+  const [data, setData] = useState<{
+    total: number;
+    felt: number;
+    largest: { mag: number; place: string; time: number; url: string; tsunami: boolean }[];
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/widgets?type=quakes')
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setData(d.data); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  /** Magnitude sets the type size, the way a newspaper sizes a headline. */
+  function magSize(mag: number) {
+    if (mag >= 6) return 15;
+    if (mag >= 5) return 13;
+    return 11;
+  }
+
+  return (
+    <div className={`border-2 ${theme.border}`}>
+      <div className={`px-2 py-[3px] border-b flex items-center justify-between ${theme.borderLight} ${theme.fill} ${theme.fillText}`}>
+        <span style={SF} className="text-[9px] font-black uppercase tracking-widest">
+          🌋 Where Earth Quaked
+        </span>
+        {data && (
+          <span style={SF} className="text-[8px] opacity-70 tabular-nums">
+            {data.total} in 24h
+          </span>
+        )}
+      </div>
+      <div className={theme.bg}>
+        {loading && (
+          <p className={`text-[9px] p-3 text-center ${theme.mutedClass}`} style={SF}>Reading the seismographs…</p>
+        )}
+        {!loading && !data && (
+          <p className={`text-[9px] p-3 text-center ${theme.mutedClass}`} style={SF}>Seismic wire unavailable.</p>
+        )}
+        {data && (
+          <>
+            {data.largest.map((q, i) => (
+              <button
+                key={`${q.time}-${i}`}
+                onClick={() => { try { void sdk.actions.openUrl(q.url); } catch { window.open(q.url, '_blank'); } }}
+                className={`w-full flex items-baseline gap-2 px-2 py-[5px] text-left active:opacity-60 ${
+                  i > 0 ? `border-t ${theme.borderLight}` : ''
+                }`}
+              >
+                <span
+                  className="font-black tabular-nums shrink-0"
+                  style={{ ...SERIF, fontSize: magSize(q.mag) }}
+                >
+                  {q.mag.toFixed(1)}
+                </span>
+                <span className="flex-1 min-w-0 text-[9px] leading-tight truncate" style={SERIF}>
+                  {q.place}
+                </span>
+                {q.tsunami && (
+                  <span className="text-[7px] font-black uppercase tracking-widest shrink-0" style={{ ...SF, color: '#b91c1c' }}>
+                    Tsunami
+                  </span>
+                )}
+              </button>
+            ))}
+            <p className={`text-[7px] px-2 py-1 border-t ${theme.borderLight} ${theme.mutedClass}`} style={SF}>
+              {data.felt.toLocaleString()} of {data.total.toLocaleString()} strong enough to feel · USGS
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const WIDGET_COMPONENTS: Record<WidgetId, React.ComponentType> = {
   weather: WeatherWidget,
   cat: CatWidget,
@@ -516,6 +603,7 @@ const WIDGET_COMPONENTS: Record<WidgetId, React.ComponentType> = {
   color: ColorWidget,
   agify: AgifyWidget,
   art: ArtWidget,
+  quakes: QuakeWidget,
 };
 
 export function WidgetPanel({ activeWidgets }: WidgetPanelProps) {

@@ -50,12 +50,11 @@ never in the repo — this repository is public.
 | Job | Schedule (UTC) | Purpose |
 | --- | --- | --- |
 | `/api/cron/daily-fetch` | `0 10 * * *` | Pull the day's Farcaster feed before deadline |
-| `/api/cron/publish-scheduled` | `0 17 * * *` | Publish any issue whose scheduled time has passed |
+| `/api/cron/publish-scheduled` | `*/15 * * * *` | Publish any issue whose scheduled time has passed |
 
-The editor's deadline is 12:00 America/Chicago. Both jobs run once daily, which is
-what the Vercel Hobby plan allows. On Pro, `publish-scheduled` should move to
-`*/15 * * * *` so scheduled issues publish close to their actual time rather than
-once a day.
+The editor's deadline is 12:00 America/Chicago, so the feed is pulled at 05:00 CT
+— ready before the editor sits down. Scheduled issues are checked every fifteen
+minutes, which the Pro plan allows; on Hobby this would have to drop to once a day.
 
 Set `CRON_SECRET` in Vercel and it is sent automatically as
 `Authorization: Bearer <secret>`; both routes reject anything else.
@@ -71,6 +70,7 @@ mini app will load inside Farcaster.
 | | Address |
 | --- | --- |
 | $RWACu | `0x184f5aacdbb3e482ce6e5e4a7075500e589a5e68` |
+| Newsstand (sells the paper, burns 41 $RWACu per sale) | `0xC9A024a9cd1fEE36943b2ad62135a6DBcBab36F5` |
 | NFT (legacy, Neynar-owned — being replaced) | `0x7b80abcfb1feb4dea794358361c625481727ff5d` |
 
 The legacy NFT contract is owned by Neynar's server wallet and has never successfully

@@ -151,7 +151,7 @@ export const paperSettings = pgTable("paper_settings", {
   // Airdrop default for new issues
   airdropDefault: boolean("airdrop_default").default(false),
   // Widget panel — comma-separated list of active widget IDs
-  activeWidgets: text("active_widgets").default("art,weather,cat,anilist"),
+  activeWidgets: text("active_widgets").default("art,weather,cat,anilist,quakes"),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 

@@ -87,14 +87,31 @@ const DAILY_NUMBER_FACTS: Record<number, string> = {
  * Aggregates all Page 2 content in parallel:
  *   1. Yo Momma joke     — api.yomomma.info (+ local fallback bank)
  *   2. Useless fact      — uselessfacts.jsph.pl
- *   3. Farcaster stats   — /api/protocol-stats (internal, includes top-10 casts)
+ *   3. Most-read         — Wikimedia featured feed (what the world looked up)
  *   4. Agify             — api.agify.io (daily rotating name)
  *   5. US holidays       — calendarific.com
  *   6. Number fact       — numbersapi.com (day-of-month trivia)
+ *   7. On this day       — Wikimedia onthisday feed
  *
  * RoboHash is client-only (URL construction) — seed returned here.
  */
+/** Wikimedia asks for a descriptive agent; an anonymous one gets throttled. */
+const WIKI_UA = "TheDailyMiscellany/2.0 (https://mj41daily.com)";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Yesterday in UTC, split for Wikimedia's /YYYY/MM/DD path. */
+function yesterdayParts() {
+  const d = new Date(Date.now() - 86_400_000);
+  return {
+    year: d.getUTCFullYear(),
+    month: pad(d.getUTCMonth() + 1),
+    day: pad(d.getUTCDate()),
+  };
+}
+
 export async function GET(req: Request) {
+  const yFeed = yesterdayParts();
   const baseUrl = new URL(req.url).origin;
   const now   = new Date();
   const year  = now.getFullYear();
@@ -103,7 +120,7 @@ export async function GET(req: Request) {
   const name  = dailyName();
   const num   = todayNumber();
 
-  const [jokeRes, factRes, statsRes, agifyRes, holidayRes, numberRes] =
+  const [jokeRes, factRes, mostReadRes, agifyRes, holidayRes, numberRes, onThisDayRes] =
     await Promise.allSettled([
       // 1. Yo Momma via JokeAPI v2 (reliable, https, free)
       fetch("https://v2.jokeapi.dev/joke/Any?type=single&blacklistFlags=racist,sexist,explicit&contains=momma", {
@@ -115,11 +132,17 @@ export async function GET(req: Request) {
         next: { revalidate: 3600 },
         signal: AbortSignal.timeout(5000),
       }),
-      // 3. Farcaster live stats (internal)
-      fetch(`${baseUrl}/api/protocol-stats`, {
-        next: { revalidate: 0 },
-        signal: AbortSignal.timeout(10000),
-      }),
+      // 3. What the world looked up — Wikipedia's most-read articles.
+      //    Yesterday, not today: today's counts are still accumulating and the
+      //    ranking is meaningless until the day closes.
+      fetch(
+        `https://api.wikimedia.org/feed/v1/wikipedia/en/featured/${yFeed.year}/${yFeed.month}/${yFeed.day}`,
+        {
+          headers: { "User-Agent": WIKI_UA },
+          next: { revalidate: 3600 },
+          signal: AbortSignal.timeout(8000),
+        },
+      ),
       // 4. Agify — estimated age for daily name (free tier, no key needed)
       fetch(`https://api.agify.io?name=${encodeURIComponent(name)}`, {
         next: { revalidate: 86400 },
@@ -136,6 +159,15 @@ export async function GET(req: Request) {
         next: { revalidate: 86400 },
         signal: AbortSignal.timeout(5000),
       }),
+      // 7. On this day — the oldest newspaper feature there is.
+      fetch(
+        `https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/selected/${pad(month)}/${pad(day)}`,
+        {
+          headers: { "User-Agent": WIKI_UA },
+          next: { revalidate: 21600 },
+          signal: AbortSignal.timeout(8000),
+        },
+      ),
     ]);
 
   // ── Joke (JokeAPI v2) ─────────────────────────────────────────────────
@@ -164,9 +196,54 @@ export async function GET(req: Request) {
   }
 
   // ── Farcaster stats (includes top10Casts) ─────────────────────────────
-  let farcasterStats: Record<string, unknown> | null = null;
-  if (statsRes.status === "fulfilled" && statsRes.value.ok) {
-    try { farcasterStats = await statsRes.value.json(); } catch { /* noop */ }
+  // ── What the world looked up ──────────────────────────────────────────
+  // Wikimedia returns a lot per article; only what the column prints is kept.
+  let mostRead: {
+    date: string;
+    articles: { rank: number; title: string; views: number; url: string; thumb: string | null }[];
+  } | null = null;
+  if (mostReadRes.status === "fulfilled" && mostReadRes.value.ok) {
+    try {
+      const d = await mostReadRes.value.json();
+      const raw = d?.mostread?.articles ?? [];
+      const articles = raw
+        // "Main Page" and portals dwarf everything and tell the reader nothing.
+        // The field is `namespace`, an object — not `ns`. Article space is id 0.
+        .filter((a: { normalizedtitle?: string; namespace?: { id?: number } }) =>
+          (a.namespace?.id ?? 0) === 0 &&
+          !/^(Main Page|Special:|Portal:|Wikipedia:)/i.test(a.normalizedtitle ?? ""))
+        .slice(0, 10)
+        .map((a: {
+          normalizedtitle: string; views: number;
+          content_urls?: { desktop?: { page?: string } };
+          thumbnail?: { source?: string };
+        }, i: number) => ({
+          rank: i + 1,
+          title: a.normalizedtitle,
+          views: a.views,
+          url: a.content_urls?.desktop?.page ??
+            `https://en.wikipedia.org/wiki/${encodeURIComponent(a.normalizedtitle)}`,
+          thumb: a.thumbnail?.source ?? null,
+        }));
+      if (articles.length) mostRead = { date: d?.mostread?.date ?? "", articles };
+    } catch { /* noop */ }
+  }
+
+  // ── On this day ───────────────────────────────────────────────────────
+  let onThisDay: { year: number; text: string; url: string | null }[] | null = null;
+  if (onThisDayRes.status === "fulfilled" && onThisDayRes.value.ok) {
+    try {
+      const d = await onThisDayRes.value.json();
+      const events = (d?.selected ?? [])
+        .slice(0, 5)
+        .map((e: { year: number; text: string; pages?: { content_urls?: { desktop?: { page?: string } } }[] }) => ({
+          year: e.year,
+          text: e.text,
+          url: e.pages?.[0]?.content_urls?.desktop?.page ?? null,
+        }))
+        .sort((a: { year: number }, b: { year: number }) => b.year - a.year);
+      if (events.length) onThisDay = events;
+    } catch { /* noop */ }
   }
 
   // ── Agify ─────────────────────────────────────────────────────────────
@@ -210,7 +287,8 @@ export async function GET(req: Request) {
   return NextResponse.json({
     joke,
     fact,
-    farcasterStats,
+    mostRead,
+    onThisDay,
     agify,
     holidays,
     numberFact,

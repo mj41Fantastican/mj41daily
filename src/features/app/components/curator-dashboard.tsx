@@ -1515,6 +1515,7 @@ export function CuratorDashboard() {
                   { id: 'book', icon: '📚', label: 'Book of the Day', desc: 'Open Library daily recommendation' },
                   { id: 'color', icon: '🎨', label: 'Color of the Day', desc: 'The Color API daily color' },
                   { id: 'agify', icon: '🔢', label: 'Age by Name', desc: 'Agify.ai name-to-age game' },
+                  { id: 'quakes', icon: '🌋', label: 'Where Earth Quaked', desc: 'Live seismic wire from USGS' },
                 ] as Array<{ id: WidgetId; icon: string; label: string; desc: string }>).map((w) => {
                   const on = activeWidgets.includes(w.id);
                   return (

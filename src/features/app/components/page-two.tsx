@@ -3,39 +3,31 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '@/features/app/theme-context';
 import { Magic8Ball } from '@/features/app/components/magic-8-ball';
+import sdk from '@farcaster/miniapp-sdk';
+
+/** Open a link through the Farcaster client when inside it, the browser otherwise. */
+function openUrl(url: string) {
+  try {
+    sdk.actions.openUrl(url);
+  } catch {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
 
 const SF    = { fontFamily: 'Arial,sans-serif' };
 const SERIF = { fontFamily: 'Georgia,"Times New Roman",serif' };
 const MONO  = { fontFamily: '"Courier New",Courier,monospace' };
 
-interface TrendingCast {
-  rank: number;
-  text: string;
-  author: string;
-  likes: number;
-  recasts: number;
-  replies: number;
-}
-
 interface Page2Data {
   joke: string | null;
   fact: string | null;
-  farcasterStats: {
-    trendingCasts?: number;
-    totalLikes?: string;
-    totalRecasts?: string;
-    totalReplies?: string;
-    engagementTotal?: string;
-    topCast?: { text: string; author: string; likes: number } | null;
-    top10Casts?: TrendingCast[];
-    channelCount?: number;
-    totalChannelFollowers?: string;
-    topChannel?: { name: string; followers: number } | null;
-    powerUserCount?: number;
-    avgNeynarScore?: string | null;
-    topPowerUser?: { username: string; score: number } | null;
-    fetchedAt?: string;
+  /** Wikipedia's most-read articles from yesterday — the day's collective curiosity. */
+  mostRead: {
+    date: string;
+    articles: { rank: number; title: string; views: number; url: string; thumb: string | null }[];
   } | null;
+  /** What happened on today's date, through history. */
+  onThisDay: { year: number; text: string; url: string | null }[] | null;
   agify: { name: string; age: number | null; count: number } | null;
   holidays: { name: string; description: string; type: string[] }[];
   numberFact: { text: string; number: number } | null;
@@ -54,16 +46,6 @@ function SectionRule({ label }: { label: string }) {
         {label}
       </p>
       <div className={`flex-1 h-[2px] ${theme.fill}`} />
-    </div>
-  );
-}
-
-function StatBox({ value, label }: { value: string | number | null | undefined; label: string }) {
-  const { theme } = useTheme();
-  return (
-    <div className={`border p-2 text-center ${theme.borderLight}`}>
-      <p className="text-[16px] font-black leading-none">{value ?? '—'}</p>
-      <p className={`text-[7px] uppercase tracking-widest mt-1 ${theme.mutedClass}`} style={SF}>{label}</p>
     </div>
   );
 }
@@ -100,63 +82,6 @@ function DailyRobot({ seed }: { seed: string }) {
             Seed: <span style={MONO}>{seed}</span>
           </p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Top 10 Trending Casts ─────────────────────────────────────────────
-function Top10Casts({ casts, fetchedAt }: { casts: TrendingCast[]; fetchedAt?: string }) {
-  const { theme } = useTheme();
-  const [expanded, setExpanded] = useState<number | null>(null);
-
-  return (
-    <div className={`border-2 mb-4 ${theme.border}`}>
-      <div className={`px-2 py-1 border-b flex items-center justify-between ${theme.borderLight} ${theme.fill} ${theme.fillText}`}>
-        <p className="text-[9px] font-black uppercase tracking-widest flex items-center gap-1" style={SF}>
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          Top 10 Casts · Last 24h
-        </p>
-        {fetchedAt && (
-          <p className="text-[7px] opacity-70" style={SF}>
-            {new Date(fetchedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </p>
-        )}
-      </div>
-      <div className="divide-y" style={{ borderColor: 'inherit' }}>
-        {casts.map((c) => (
-          <button
-            key={c.rank}
-            onClick={() => setExpanded(expanded === c.rank ? null : c.rank)}
-            className={`w-full text-left px-2 py-2 active:opacity-70 transition-colors ${theme.bg}`}
-          >
-            <div className="flex items-start gap-2">
-              {/* Rank badge */}
-              <span
-                className={`text-[9px] font-black shrink-0 w-5 h-5 flex items-center justify-center border ${theme.fill} ${theme.fillText}`}
-                style={SF}
-              >
-                {c.rank}
-              </span>
-              <div className="flex-1 min-w-0">
-                {/* Cast text */}
-                <p className={`text-[9px] leading-snug ${expanded === c.rank ? '' : 'line-clamp-2'}`} style={SERIF}>
-                  {c.text}{c.text.length >= 140 ? '…' : ''}
-                </p>
-                {/* Author + stats */}
-                <div className={`flex items-center gap-2 mt-[3px] ${theme.mutedClass}`}>
-                  <span className="text-[8px] font-bold" style={SF}>@{c.author}</span>
-                  <span className="text-[7px]" style={SF}>♥ {c.likes.toLocaleString()}</span>
-                  <span className="text-[7px]" style={SF}>⟲ {c.recasts.toLocaleString()}</span>
-                  <span className="text-[7px]" style={SF}>↩ {c.replies.toLocaleString()}</span>
-                </div>
-              </div>
-              <span className={`text-[8px] shrink-0 ${theme.mutedClass}`} style={SF}>
-                {expanded === c.rank ? '▲' : '▼'}
-              </span>
-            </div>
-          </button>
-        ))}
       </div>
     </div>
   );
@@ -363,49 +288,77 @@ export function PageTwo() {
             <SectionRule label="Miscellany Identity" />
             <DailyRobot seed={data.roboSeed} />
 
-            {/* ── FARCASTER NETWORK PULSE — summary stats ── */}
-            <SectionRule label="Farcaster Network Pulse" />
-            {data.farcasterStats ? (
-              <div className={`border-2 mb-4 ${theme.border}`}>
-                <div className={`px-2 py-1 border-b flex justify-between items-center ${theme.borderLight} ${theme.fillLight}`}>
-                  <p className="text-[9px] font-black uppercase tracking-widest flex items-center gap-1" style={SF}>
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    Live Engagement (24h)
+            {/* ── WHAT THE WORLD LOOKED UP ── */}
+            {data.mostRead && data.mostRead.articles.length > 0 && (
+              <>
+                <SectionRule label="What the World Looked Up" />
+                <div className={`border-2 mb-4 ${theme.border}`}>
+                  <div className={`px-2 py-1 border-b flex justify-between items-center ${theme.borderLight} ${theme.fillLight}`}>
+                    <p className="text-[9px] font-black uppercase tracking-widest" style={SF}>
+                      Most Read on Wikipedia
+                    </p>
+                    <p className={`text-[8px] uppercase tracking-widest ${theme.mutedClass}`} style={SF}>
+                      Yesterday
+                    </p>
+                  </div>
+                  <div>
+                    {data.mostRead.articles.map((a) => (
+                      <button
+                        key={a.rank}
+                        onClick={() => openUrl(a.url)}
+                        className={`w-full flex items-center gap-2 px-2 py-[6px] border-b text-left active:opacity-60 ${theme.borderLight}`}
+                      >
+                        <span
+                          className={`text-[13px] font-black tabular-nums w-5 shrink-0 ${theme.mutedClass}`}
+                          style={SERIF}
+                        >
+                          {a.rank}
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-[11px] font-bold leading-tight truncate" style={SERIF}>
+                            {a.title}
+                          </span>
+                          <span className={`block text-[8px] tabular-nums ${theme.mutedClass}`} style={SF}>
+                            {a.views.toLocaleString()} readers
+                          </span>
+                        </span>
+                        <span className={`text-[9px] shrink-0 ${theme.mutedClass}`}>↗</span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className={`text-[7px] px-2 py-1 ${theme.mutedClass}`} style={SF}>
+                    Source: Wikimedia · English Wikipedia
                   </p>
                 </div>
-                <div className="p-2 space-y-2">
-                  <div className="grid grid-cols-3 gap-1">
-                    <StatBox value={data.farcasterStats.totalLikes}   label="Likes" />
-                    <StatBox value={data.farcasterStats.totalRecasts} label="Recasts" />
-                    <StatBox value={data.farcasterStats.totalReplies} label="Replies" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-1">
-                    <StatBox value={data.farcasterStats.powerUserCount} label="Power Users" />
-                    <StatBox value={data.farcasterStats.avgNeynarScore} label="Avg Score" />
-                  </div>
-                  {data.farcasterStats.topChannel && (
-                    <div className={`border p-2 ${theme.borderLight}`}>
-                      <p className={`text-[7px] uppercase tracking-widest mb-[2px] ${theme.mutedClass}`} style={SF}>Top Channel</p>
-                      <p className="text-[11px] font-black">{data.farcasterStats.topChannel.name}</p>
-                      <p className={`text-[9px] ${theme.mutedClass}`} style={SF}>
-                        {data.farcasterStats.topChannel.followers.toLocaleString()} followers
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <p className={`text-[9px] text-center py-2 mb-3 ${theme.mutedClass}`} style={SF}>Network stats unavailable.</p>
+              </>
             )}
 
-            {/* ── TOP 10 TRENDING CASTS ── */}
-            {data.farcasterStats?.top10Casts && data.farcasterStats.top10Casts.length > 0 && (
+            {/* ── ON THIS DAY ── */}
+            {data.onThisDay && data.onThisDay.length > 0 && (
               <>
-                <SectionRule label="Top 10 Trending Casts" />
-                <Top10Casts
-                  casts={data.farcasterStats.top10Casts}
-                  fetchedAt={data.farcasterStats.fetchedAt}
-                />
+                <SectionRule label="On This Day" />
+                <div className={`border-2 mb-4 ${theme.border}`}>
+                  {data.onThisDay.map((e, i) => (
+                    <button
+                      key={`${e.year}-${i}`}
+                      onClick={() => e.url && openUrl(e.url)}
+                      disabled={!e.url}
+                      className={`w-full flex gap-2 px-2 py-2 text-left ${
+                        i > 0 ? `border-t ${theme.borderLight}` : ""
+                      } ${e.url ? "active:opacity-60" : ""}`}
+                    >
+                      <span className="text-[14px] font-black tabular-nums shrink-0 w-9" style={SERIF}>
+                        {e.year}
+                      </span>
+                      <span className="flex-1 text-[10px] leading-snug" style={SERIF}>
+                        {e.text}
+                      </span>
+                    </button>
+                  ))}
+                  <p className={`text-[7px] px-2 py-1 border-t ${theme.borderLight} ${theme.mutedClass}`} style={SF}>
+                    Source: Wikimedia
+                  </p>
+                </div>
               </>
             )}
 
