@@ -105,7 +105,7 @@ export async function GET() {
         tagline text DEFAULT 'All the news that''s fit to cast',
         editor_handle text DEFAULT '@mj41fantastican',
         color_scheme text DEFAULT 'bw',
-        paper_name text DEFAULT 'The Daily Miscellany',
+        paper_name text DEFAULT 'The Daily Miscellany: A Compendium Of Interesting Things',
         channel_url text DEFAULT '',
         website_url text DEFAULT 'dailyfarcaster.fc',
         editorial_note_enabled boolean DEFAULT false,
@@ -139,7 +139,7 @@ export async function GET() {
       // ── Backfill new paper_settings columns (safe on existing tables)
       `ALTER TABLE paper_settings
         ADD COLUMN IF NOT EXISTS color_scheme text DEFAULT 'bw',
-        ADD COLUMN IF NOT EXISTS paper_name text DEFAULT 'The Daily Miscellany',
+        ADD COLUMN IF NOT EXISTS paper_name text DEFAULT 'The Daily Miscellany: A Compendium Of Interesting Things',
         ADD COLUMN IF NOT EXISTS channel_url text DEFAULT '',
         ADD COLUMN IF NOT EXISTS website_url text DEFAULT 'dailyfarcaster.fc',
         ADD COLUMN IF NOT EXISTS editorial_note_enabled boolean DEFAULT false,

@@ -68,9 +68,13 @@ interface IAggregatorV3 {
  *
  *      So the two are separated. The reader pays a real price in ETH or an
  *      accepted token, set by the editor. The contract then buys *exactly*
- *      `burnAmount` $RWACu with a sliver of that payment and destroys it. The
- *      remainder goes to the treasury. Every sale burns the same 41 tokens no
- *      matter what was paid, and the burn is provable on-chain forever.
+ *      `burnAmount` $RWACu with a sliver of that payment, and the reader chooses
+ *      what happens to it: destroyed forever, or given to the paper's treasury.
+ *      The rest of the payment goes to the treasury either way.
+ *
+ *      Letting the reader decide turns a silent mechanic into a small act with a
+ *      consequence — and both outcomes are counted on-chain, so the paper can
+ *      show what its readers chose.
  *
  *      Exact-output swaps are deliberate: an exact-input swap of a few thousand
  *      wei would round to nothing in a thin pool. Asking for exactly 41 tokens
@@ -116,6 +120,12 @@ contract Newsstand {
     /// @notice Fee tier of the WETH/$RWACu pool. 10000 (1%) on Base today.
     uint24 public ethPoolFee;
 
+    /// @notice Running totals, so the paper can print what readers chose without
+    ///         replaying every log.
+    uint256 public totalBurned;
+    uint256 public totalDonated;
+    uint256 public totalSales;
+
     struct TokenTerms {
         bool accepted;
         /// @dev Price of one issue in this token's own units.
@@ -141,8 +151,9 @@ contract Newsstand {
         uint256 indexed issueId,
         address indexed paidIn,
         uint256 amountPaid,
-        uint256 rwacuBurned,
-        uint256 spentOnBurn
+        uint256 rwacuAcquired,
+        uint256 spentOnRwacu,
+        bool burned
     );
 
     event TokenAccepted(address indexed token, uint256 price);
@@ -223,10 +234,11 @@ contract Newsstand {
     // ─── Buying ──────────────────────────────────────────────────────────────
 
     /**
-     * @notice Buy an issue with ETH. Burns `burnAmount` $RWACu, forwards the rest.
+     * @notice Buy an issue with ETH.
      * @param issueId The issue being bought. Recorded in the event, not enforced.
+     * @param burnRwacu True to destroy the $RWACu, false to give it to the paper.
      */
-    function buyWithETH(uint256 issueId) external payable {
+    function buyWithETH(uint256 issueId, bool burnRwacu) external payable {
         uint256 price = priceWei();
         if (price == 0) revert EthDoorClosed();
         if (msg.value < price) revert Underpaid(msg.value, price);
@@ -254,17 +266,17 @@ contract Newsstand {
         weth.approve(address(router), 0);
         if (spent < budget) weth.withdraw(budget - spent);
 
-        rwacu.burn(burnAmount);
+        _disposeRwacu(burnRwacu);
         _sweepETH();
 
-        emit Purchased(msg.sender, issueId, address(0), msg.value, burnAmount, spent);
+        emit Purchased(msg.sender, issueId, address(0), msg.value, burnAmount, spent, burnRwacu);
     }
 
     /**
      * @notice Buy an issue with an accepted ERC-20, such as USDC.
      * @dev The reader must approve this contract for `terms[token].price` first.
      */
-    function buyWithToken(address token, uint256 issueId) external {
+    function buyWithToken(address token, uint256 issueId, bool burnRwacu) external {
         TokenTerms memory t = terms[token];
         if (!t.accepted) revert TokenNotAccepted(token);
 
@@ -285,12 +297,31 @@ contract Newsstand {
         );
         paid.approve(address(router), 0);
 
-        rwacu.burn(burnAmount);
+        _disposeRwacu(burnRwacu);
 
         uint256 remainder = paid.balanceOf(address(this));
         if (remainder > 0) paid.transfer(treasury, remainder);
 
-        emit Purchased(msg.sender, issueId, token, t.price, burnAmount, spent);
+        emit Purchased(msg.sender, issueId, token, t.price, burnAmount, spent, burnRwacu);
+    }
+
+    /**
+     * @dev The reader's choice, carried out.
+     *
+     * Burning calls the token's real burn, which lowers total supply — not a
+     * transfer to a dead address that still counts as circulating. Donating
+     * hands the same tokens to the treasury instead, where the paper can hold
+     * or spend them.
+     */
+    function _disposeRwacu(bool burnRwacu) private {
+        if (burnRwacu) {
+            rwacu.burn(burnAmount);
+            totalBurned += burnAmount;
+        } else {
+            rwacu.transfer(treasury, burnAmount);
+            totalDonated += burnAmount;
+        }
+        totalSales += 1;
     }
 
     // ─── Editor controls ─────────────────────────────────────────────────────

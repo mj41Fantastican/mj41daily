@@ -64,7 +64,7 @@ const ALL_SLOTS: SlotDefinition[] = [
   { id: 'lead',     label: 'Lead Story',        required: true },
   { id: 'negative', label: 'Secondary Left',    required: true },
   { id: 'positive', label: 'Secondary Right',   required: true },
-  { id: 'channel',  label: 'Channel Spotlight', required: true },
+  // 'channel' (Channel Spotlight) retired with the Farcaster sources.
   // 'token' slot removed — Token Tracker editor handles the TOKENS mid-story block
   // 'editorial' is handled separately via the editorialNote textarea in Issue Options
 ];
@@ -375,9 +375,9 @@ export function CuratorDashboard() {
 
   // Active news category tab per story slot ('farcaster' | NewsCategory)
   const [storyTab, setStoryTab] = useState<Record<'lead' | 'negative' | 'positive', 'farcaster' | NewsCategory>>({
-    lead: 'farcaster',
-    negative: 'farcaster',
-    positive: 'farcaster',
+    lead: 'technology',
+    negative: 'business',
+    positive: 'science',
   });
 
   // News story picks (story data for assembly at publish)
@@ -591,12 +591,6 @@ export function CuratorDashboard() {
     setNewsPicks((p) => ({ ...p, [slot]: story }));
     // Clear Farcaster pick for this slot
     setPicks((p) => { const n = { ...p }; delete n[slot]; return n; });
-  }
-
-  function pickFarcaster(slot: Slot, id: string) {
-    pick(slot, id);
-    // Clear news pick for this slot
-    setNewsPicks((p) => { const n = { ...p }; delete n[slot]; return n; });
   }
 
   const activeSlots = ALL_SLOTS.filter((s) => enabledSlots[s.id as keyof typeof enabledSlots] !== false);
@@ -1352,7 +1346,6 @@ export function CuratorDashboard() {
                   { id: 'lead', label: 'Lead Story' },
                   { id: 'negative', label: 'Secondary Left' },
                   { id: 'positive', label: 'Secondary Right' },
-                  { id: 'channel', label: 'Channel Spotlight' },
                 ] as const).map((s) => {
                   const on = enabledSlots[s.id];
                   return (
@@ -1547,10 +1540,8 @@ export function CuratorDashboard() {
           const slotLabel = slotKey === 'lead' ? 'Lead Story' : slotKey === 'negative' ? 'Secondary Left (News)' : 'Secondary Right (Analysis)';
           const activeTab = storyTab[slotKey];
           const pickedNews = newsPicks[slotKey];
-          const pickedCastId = picks[slotKey];
           const news = feed.newsCategories ?? { technology: [], business: [], sports: [], blockchain: [], science: [] };
           const TABS: Array<{ id: 'farcaster' | NewsCategory; label: string }> = [
-            { id: 'farcaster', label: '🟣 Protocol' },
             { id: 'technology', label: '💻 Tech' },
             { id: 'business', label: '📈 Biz' },
             { id: 'sports', label: '🏆 Sports' },
@@ -1595,49 +1586,7 @@ export function CuratorDashboard() {
                 ))}
               </div>
 
-              {activeTab === 'farcaster' ? (
-                /* Farcaster trending casts */
-                <div className={`divide-y ${theme.borderLight}`}>
-                  <p className={`px-2 py-1 text-[8px] italic ${theme.mutedClass}`} style={SF}>
-                    What&apos;s going on in the protocol?
-                  </p>
-                  {feed.trendingCasts.length === 0 ? (
-                    <p className={`px-2 py-3 text-[9px] text-center ${theme.mutedClass}`} style={SF}>
-                      No casts yet — hit 🔄 Refresh to fetch live data
-                    </p>
-                  ) : feed.trendingCasts.map((c) => {
-                    const isSel = pickedCastId === c.id && !pickedNews;
-                    return (
-                      <div key={c.id}>
-                        <button
-                          onClick={() => pickFarcaster(slotKey, c.id)}
-                          className={`w-full text-left px-2 py-2 flex gap-2 items-start min-h-[44px] ${theme.text} ${isSel ? theme.fillLight : ''}`}
-                        >
-                          <div className={`mt-[2px] w-3 h-3 rounded-full border-2 shrink-0 ${isSel ? `${theme.border} ${theme.fill}` : theme.borderLight}`} />
-                          <div className="flex-1 min-w-0">
-                            <span className={`text-[9px] font-bold ${theme.mutedClass}`}>{c.author}</span>
-                            <p className="text-[10px] leading-tight mt-[1px] line-clamp-2">{c.text}</p>
-                            <p className="text-[8px] opacity-40 mt-[2px]">❤ {c.likes.toLocaleString()} · 🔁 {c.recasts}</p>
-                          </div>
-                          <span className={`text-[8px] px-1 py-[1px] shrink-0 ${c.signal === 'positive' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {c.signal === 'positive' ? '✦' : '⚠'}
-                          </span>
-                        </button>
-                        {isSel && !writeInMode[slotKey] && (
-                          <button
-                            onClick={() => handleExpand(slotKey, c.text, c.author)}
-                            disabled={expanding === slotKey}
-                            className="w-full px-2 py-[6px] text-[9px] font-bold uppercase tracking-wide text-left border-t active:opacity-70 disabled:opacity-50"
-                            style={{ ...SF, borderColor: '#e5e7eb', background: '#fafafa', color: '#6b7280' }}
-                          >
-                            {expanding === slotKey ? '⏳ Writing article...' : '✨ Expand into full article'}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
+              {(
                 /* External news category */
                 <div className={`divide-y ${theme.borderLight}`}>
                   {(news[activeTab as NewsCategory] ?? []).length === 0 ? (

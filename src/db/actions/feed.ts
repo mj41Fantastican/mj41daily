@@ -6,7 +6,6 @@ import { desc } from "drizzle-orm";
 import type { TrendingCast, TopChannel, TopToken, MiniApp as MiniAppType, NetworkStats, NewsCategories, NewsStory, NewsCategory } from "@/features/app/types";
 import Anthropic from "@anthropic-ai/sdk";
 
-const NEYNAR_API = "https://api.neynar.com/v2/farcaster";
 
 export type FeedRow = typeof dailyFeed.$inferSelect;
 
@@ -165,153 +164,22 @@ async function fetchNewsCategory(category: NewsCategory): Promise<NewsStory[]> {
  * Editor can call this on-demand from the curator dashboard.
  */
 export async function refreshFeed(): Promise<{ success: boolean; error?: string }> {
-  const apiKey = process.env.NEYNAR_API_KEY;
-  if (!apiKey) return { success: false, error: "NEYNAR_API_KEY not configured" };
-
-  const headers = { "x-api-key": apiKey, "Content-Type": "application/json" };
-
   try {
-    // Trending casts
-    const trendingRes = await fetch(`${NEYNAR_API}/feed/trending?limit=10&time_window=24h`, { headers });
-    const trendingData = await trendingRes.json();
-    const trendingCasts: TrendingCast[] = (trendingData.casts ?? [])
-      .slice(0, 10)
-      .map((cast: { hash: string; author: { username: string }; text: string; reactions: { likes_count: number; recasts_count: number } }, idx: number) => ({
-        id: cast.hash ?? `c${idx}`,
-        author: `@${cast.author?.username ?? "unknown"}`,
-        text: cast.text ?? "",
-        likes: cast.reactions?.likes_count ?? 0,
-        recasts: cast.reactions?.recasts_count ?? 0,
-        signal: (cast.reactions?.likes_count ?? 0) > 500 ? "positive" : "negative",
-      }));
-
-    // Top channels — use trending feed to find most active channels in last 24h
-    let topChannels: TopChannel[] = [];
-    try {
-      const trendingChannelRes = await fetch(`${NEYNAR_API}/feed/trending?limit=100&time_window=24h`, { headers });
-      const trendingChannelData = await trendingChannelRes.json();
-      // Count cast frequency per channel from trending feed
-      const channelCounts: Record<string, { id: string; name: string; casts24h: number; imageUrl?: string }> = {};
-      for (const cast of (trendingChannelData.casts ?? [])) {
-        const ch = cast.channel;
-        if (!ch?.id) continue;
-        if (!channelCounts[ch.id]) {
-          channelCounts[ch.id] = { id: ch.id, name: ch.name ?? ch.id, casts24h: 0, imageUrl: ch.image_url };
-        }
-        channelCounts[ch.id].casts24h++;
-      }
-      // Sort by cast count
-      const sorted = Object.values(channelCounts).sort((a, b) => b.casts24h - a.casts24h).slice(0, 10);
-
-      // Enrich with follower counts if we got channels
-      if (sorted.length > 0) {
-        const ids = sorted.map((c) => c.id).join(",");
-        try {
-          const bulkRes = await fetch(`${NEYNAR_API}/channel/bulk?ids=${encodeURIComponent(ids)}`, { headers });
-          if (bulkRes.ok) {
-            const bulkData = await bulkRes.json();
-            const followerMap: Record<string, number> = {};
-            for (const ch of (bulkData.channels ?? [])) {
-              followerMap[ch.id] = ch.follower_count ?? 0;
-            }
-            topChannels = sorted.map((c, idx) => ({
-              id: c.id,
-              name: `/${c.id}`,
-              members: (followerMap[c.id] ?? 0).toLocaleString(),
-              casts24h: c.casts24h * 10 + Math.floor(Math.random() * 200), // scale up from sample
-              growth: "+0%",
-            }));
-          }
-        } catch { /* use sorted without follower counts */ }
-      }
-
-      if (topChannels.length === 0) {
-        // Fallback: generic list endpoint
-        const listRes = await fetch(`${NEYNAR_API}/channel/list?limit=10`, { headers });
-        const listData = await listRes.json();
-        topChannels = (listData.channels ?? []).slice(0, 10).map((ch: { id: string; name: string; follower_count: number }, idx: number) => ({
-          id: ch.id ?? `ch${idx}`,
-          name: `/${ch.id ?? ch.name}`,
-          members: (ch.follower_count ?? 0).toLocaleString(),
-          casts24h: Math.floor(Math.random() * 3000) + 100,
-          growth: "+0%",
-        }));
-      }
-    } catch {
-      topChannels = [];
-    }
-
-    // New mini apps — try the mini app catalog endpoint, fall back to frame list
-    let newMiniApps: MiniAppType[] = [];
-    try {
-      // Try the mini app catalog / recently added endpoint
-      const catalogRes = await fetch(`${NEYNAR_API}/mini-app/catalog?limit=10&sort=recently_added`, { headers });
-      if (catalogRes.ok) {
-        const catalogData = await catalogRes.json();
-        const items = catalogData.mini_apps ?? catalogData.apps ?? catalogData.frames ?? [];
-        newMiniApps = items.slice(0, 5).map((app: {
-          uuid?: string; fid?: number; name?: string; description?: string; short_description?: string;
-          author?: { username?: string }; creator?: { username?: string };
-          creator_displays?: { username?: string }[];
-          home_url?: string; url?: string; icon_url?: string; image_url?: string;
-        }, idx: number) => ({
-          id: app.uuid ?? app.fid?.toString() ?? `a${idx}`,
-          name: app.name ?? `App ${idx + 1}`,
-          desc: app.short_description ?? app.description ?? "A new Farcaster mini app",
-          author: `@${app.author?.username ?? app.creator?.username ?? app.creator_displays?.[0]?.username ?? "builder"}`,
-          url: app.home_url ?? app.url ?? undefined,
-          imageUrl: app.icon_url ?? app.image_url ?? undefined,
-        }));
-      }
-    } catch { /* fall through */ }
-
-    if (newMiniApps.length === 0) {
-      try {
-        // Fallback: frame list sorted by recency
-        const framesRes = await fetch(`${NEYNAR_API}/frame/list?limit=10`, { headers });
-        if (framesRes.ok) {
-          const framesData = await framesRes.json();
-          newMiniApps = (framesData.frames ?? []).slice(0, 5).map((frame: {
-            uuid?: string; name?: string; description?: string;
-            creator_displays?: { username?: string }[]; url?: string;
-          }, idx: number) => ({
-            id: frame.uuid ?? `a${idx}`,
-            name: frame.name ?? `App ${idx + 1}`,
-            desc: frame.description ?? "A new mini app",
-            author: `@${frame.creator_displays?.[0]?.username ?? "builder"}`,
-            url: frame.url ?? undefined,
-          }));
-        }
-      } catch { /* empty */ }
-    }
-
-    // Protocol stats — real Neynar data
-    let networkStats: NetworkStats = {
+    // ── Farcaster content retired ──────────────────────────────────────────
+    // The paper used to lead on Neynar's trending casts. Neynar is winding
+    // down, their trending endpoint had already been returning nothing for
+    // weeks, and ranking casts requires an indexer no free service provides.
+    //
+    // The paper is "A Compendium Of Interesting Things" now, not a Farcaster
+    // newspaper, so the story slots run on the RSS wire below — Hacker News,
+    // the NYT desks, WSJ, Ars Technica, CoinTelegraph, ScienceDaily and the
+    // rest — none of which can be taken away or start billing.
+    const trendingCasts: TrendingCast[] = [];
+    const topChannels: TopChannel[] = [];
+    const newMiniApps: MiniAppType[] = [];
+    const networkStats: NetworkStats = {
       totalAccounts: "—", dau: "—", dauChange: "—", newToday: "—", castsToday: "—",
     };
-    try {
-      // Fetch Farcaster stats summary from Neynar
-      const statsRes = await fetch(`${NEYNAR_API}/stats`, { headers });
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        const s = statsData.stats ?? statsData;
-        const fmt = (n: number | undefined) => n != null ? n >= 1_000_000 ? `${(n/1_000_000).toFixed(2)}M` : n >= 1_000 ? `${(n/1_000).toFixed(1)}K` : String(n) : "—";
-        networkStats = {
-          totalAccounts: fmt(s.num_users ?? s.total_users ?? s.num_accounts),
-          dau: fmt(s.daily_active_users ?? s.dau),
-          dauChange: s.dau_change != null ? `${s.dau_change >= 0 ? "+" : ""}${s.dau_change.toFixed(1)}%` : "—",
-          newToday: fmt(s.new_users_today ?? s.num_new_users_today),
-          castsToday: fmt(s.casts_today ?? s.num_casts_today),
-          totalCasts: fmt(s.total_casts ?? s.num_casts),
-          totalChannels: fmt(s.total_channels ?? s.num_channels),
-          verifiedUsers: fmt(s.verified_addresses ?? s.num_verified_users),
-          reactionsToday: fmt(s.reactions_today ?? s.num_reactions_today),
-          followsToday: fmt(s.follows_today ?? s.num_follows_today),
-        };
-      }
-    } catch {
-      // keep defaults
-    }
 
     // Tokens — verified pool of Farcaster/Base ecosystem tokens with confirmed CoinGecko IDs
     // All cgIds confirmed against CoinGecko /coins/list endpoint
@@ -408,18 +276,19 @@ export async function refreshFeed(): Promise<{ success: boolean; error?: string 
         max_tokens: 280,
         messages: [{
           role: "user",
-          content: `You are an on-chain data analyst for The Daily Miscellany. Generate a compelling daily ON-CHAIN insight about the Base blockchain or Farcaster ecosystem.
+          content: `You are the resident curiosity columnist for The Daily Miscellany, a daily paper of interesting things. Generate one compelling daily insight.
 
 Difficulty: ${isExpert
-  ? "MASTERY LEVEL — use precise technical terms: MEV, EIP numbers, gas mechanics, contract opcodes, liquidity math, bridging architecture, protocol fees, etc. Assume reader has deep familiarity with blockchain internals."
+  ? "MASTERY LEVEL — assume a well-read, curious reader. Precision and real detail over simplification."
   : "NOVICE LEVEL — explain one interesting on-chain fact in plain English that anyone can understand and find fascinating. No jargon. Make it feel like a discovery."}
 
 Requirements:
 - 2-3 sentences maximum
 - Reference real, plausible current data patterns (realistic approximations OK, no specific real-time prices)
-- End with why it matters or what it implies for the Farcaster/Base ecosystem
+- End with why it matters, or what it implies
 - Today: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-- Vary the topic: gas patterns, NFT activity, DeFi flows, bridge volumes, contract deployments, protocol fees, onchain social data, etc.
+- Vary the topic widely: science, history, economics, language, space, nature,
+  engineering, statistics, or the copper market. Surprise the reader.
 
 Return ONLY the insight text, no labels or prefixes.`,
         }],

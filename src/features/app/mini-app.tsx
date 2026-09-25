@@ -8,7 +8,6 @@ import { CuratorDashboard } from '@/features/app/components/curator-dashboard';
 import { MintArchive } from '@/features/app/components/mint-archive';
 import { CollectiblesPanel } from '@/features/app/components/collectibles-panel';
 import { PageTwo } from '@/features/app/components/page-two';
-import { SportsPage } from '@/features/app/components/sports-page';
 import { useIsEditor } from '@/hooks/use-is-editor';
 import { THEMES } from '@/data/mocks';
 import type { ThemeId } from '@/features/app/types';
@@ -60,7 +59,6 @@ export function MiniApp() {
             {isEditor && <TabsTrigger value="editor"  className={tabClass} style={tabStyle}>Editor</TabsTrigger>}
             <TabsTrigger value="page2"        className={tabClass} style={tabStyle}>Page 2</TabsTrigger>
             <TabsTrigger value="archive"      className={tabClass} style={tabStyle}>Archive</TabsTrigger>
-            <TabsTrigger value="sports"       className={tabClass} style={tabStyle}>Sports</TabsTrigger>
             <TabsTrigger value="collectibles" className={tabClass} style={tabStyle}>Collectibles</TabsTrigger>
           </TabsList>
 
@@ -75,9 +73,6 @@ export function MiniApp() {
           </TabsContent>
           <TabsContent value="archive" className="flex-1 overflow-y-auto mt-0 p-0">
             <MintArchive />
-          </TabsContent>
-          <TabsContent value="sports" className="flex-1 overflow-hidden mt-0 p-0">
-            <SportsPage />
           </TabsContent>
           <TabsContent value="collectibles" className="flex-1 overflow-y-auto mt-0 p-0">
             <CollectiblesPanel refreshTrigger={collectiblesRefresh} />

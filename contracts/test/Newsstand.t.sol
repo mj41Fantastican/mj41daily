@@ -44,7 +44,7 @@ contract NewsstandTest is Test {
         uint256 supplyBefore = _totalSupply();
 
         vm.prank(reader);
-        stand.buyWithETH{value: 0.0001 ether}(1);
+        stand.buyWithETH{value: 0.0001 ether}(1, true);
 
         assertEq(
             supplyBefore - _totalSupply(),
@@ -59,7 +59,7 @@ contract NewsstandTest is Test {
         uint256 before = treasury.balance;
 
         vm.prank(reader);
-        stand.buyWithETH{value: price}(1);
+        stand.buyWithETH{value: price}(1, true);
 
         uint256 received = treasury.balance - before;
         assertGt(received, 0, "treasury must be paid");
@@ -74,7 +74,7 @@ contract NewsstandTest is Test {
 
     function test_BuyWithETH_leavesNothingBehind() public {
         vm.prank(reader);
-        stand.buyWithETH{value: 0.0001 ether}(1);
+        stand.buyWithETH{value: 0.0001 ether}(1, true);
 
         assertEq(address(stand).balance, 0, "no ETH may be stranded");
         assertEq(IERC20(RWACU).balanceOf(address(stand)), 0, "no RWACu may be stranded");
@@ -84,13 +84,13 @@ contract NewsstandTest is Test {
     function test_BuyWithETH_emitsTheReadershipRecord() public {
         vm.recordLogs();
         vm.prank(reader);
-        stand.buyWithETH{value: 0.0001 ether}(7);
+        stand.buyWithETH{value: 0.0001 ether}(7, true);
 
         Vm.Log[] memory logs = vm.getRecordedLogs();
         bool found;
         for (uint256 i = 0; i < logs.length; i++) {
             if (logs[i].topics[0] == keccak256(
-                "Purchased(address,uint256,address,uint256,uint256,uint256)"
+                "Purchased(address,uint256,address,uint256,uint256,uint256,bool)"
             )) {
                 assertEq(uint256(logs[i].topics[2]), 7, "issueId must be recorded");
                 found = true;
@@ -103,7 +103,7 @@ contract NewsstandTest is Test {
         uint256 supplyBefore = _totalSupply();
         for (uint256 i = 0; i < 5; i++) {
             vm.prank(reader);
-            stand.buyWithETH{value: 0.0001 ether}(i);
+            stand.buyWithETH{value: 0.0001 ether}(i, true);
         }
         assertEq(supplyBefore - _totalSupply(), 5 * 41e18, "five sales, five burns");
     }
@@ -121,7 +121,7 @@ contract NewsstandTest is Test {
         IERC20(USDC).approve(address(stand), type(uint256).max);
 
         uint256 supplyBefore = _totalSupply();
-        stand.buyWithToken(USDC, 1);
+        stand.buyWithToken(USDC, 1, true);
         vm.stopPrank();
 
         assertEq(supplyBefore - _totalSupply(), 41e18, "USDC sale must burn 41 too");
@@ -132,7 +132,7 @@ contract NewsstandTest is Test {
     function test_UnacceptedToken_reverts() public {
         vm.expectRevert(abi.encodeWithSelector(Newsstand.TokenNotAccepted.selector, USDC));
         vm.prank(reader);
-        stand.buyWithToken(USDC, 1);
+        stand.buyWithToken(USDC, 1, true);
     }
 
     // ─── Editor controls ─────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ contract NewsstandTest is Test {
             abi.encodeWithSelector(Newsstand.Underpaid.selector, 1, 0.0001 ether)
         );
         vm.prank(reader);
-        stand.buyWithETH{value: 1}(1);
+        stand.buyWithETH{value: 1}(1, true);
     }
 
     function test_EditorCanChangePrice() public {
@@ -150,7 +150,7 @@ contract NewsstandTest is Test {
         assertEq(stand.priceWei(), 0.0002 ether);
 
         vm.prank(reader);
-        stand.buyWithETH{value: 0.0002 ether}(1);
+        stand.buyWithETH{value: 0.0002 ether}(1, true);
         assertGt(treasury.balance, 0);
     }
 
@@ -159,7 +159,7 @@ contract NewsstandTest is Test {
         uint256 supplyBefore = _totalSupply();
 
         vm.prank(reader);
-        stand.buyWithETH{value: 0.0001 ether}(1);
+        stand.buyWithETH{value: 0.0001 ether}(1, true);
 
         assertEq(supplyBefore - _totalSupply(), 100e18, "burn amount must be settable");
     }
@@ -178,7 +178,7 @@ contract NewsstandTest is Test {
         stand.setFixedPriceWei(0);
         vm.expectRevert(Newsstand.EthDoorClosed.selector);
         vm.prank(reader);
-        stand.buyWithETH{value: 1 ether}(1);
+        stand.buyWithETH{value: 1 ether}(1, true);
     }
 
     function test_AcceptAndRemoveToken() public {
@@ -193,7 +193,7 @@ contract NewsstandTest is Test {
 
         vm.expectRevert(abi.encodeWithSelector(Newsstand.TokenNotAccepted.selector, USDC));
         vm.prank(reader);
-        stand.buyWithToken(USDC, 1);
+        stand.buyWithToken(USDC, 1, true);
     }
 
     function test_BurnBudgetCannotExceedPrice() public {
@@ -227,7 +227,7 @@ contract NewsstandTest is Test {
         uint256 before = treasury.balance;
 
         vm.prank(reader);
-        stand.buyWithETH{value: price}(1);
+        stand.buyWithETH{value: price}(1, true);
 
         assertEq(supplyBefore - _totalSupply(), 41e18, "a one-cent sale still burns 41");
         uint256 received = treasury.balance - before;
@@ -250,6 +250,54 @@ contract NewsstandTest is Test {
     function test_NoFeed_fallsBackToFixedWei() public {
         assertEq(stand.ethUsdFeed(), address(0));
         assertEq(stand.priceWei(), 0.0001 ether, "must use the fixed price with no feed");
+    }
+
+    // ─── The reader's choice ─────────────────────────────────────────────────
+
+    function test_Donate_doesNotBurn_treasuryGetsTheTokens() public {
+        uint256 supplyBefore = _totalSupply();
+        uint256 treasuryRwacuBefore = IERC20(RWACU).balanceOf(treasury);
+
+        vm.prank(reader);
+        stand.buyWithETH{value: 0.0001 ether}(1, false);
+
+        assertEq(_totalSupply(), supplyBefore, "donating must not reduce supply");
+        assertEq(
+            IERC20(RWACU).balanceOf(treasury) - treasuryRwacuBefore,
+            41e18,
+            "the paper must receive the 41 tokens"
+        );
+        assertEq(IERC20(RWACU).balanceOf(address(stand)), 0, "nothing stranded");
+    }
+
+    function test_Counters_recordWhatReadersChose() public {
+        vm.prank(reader);
+        stand.buyWithETH{value: 0.0001 ether}(1, true);
+        vm.prank(reader);
+        stand.buyWithETH{value: 0.0001 ether}(2, false);
+        vm.prank(reader);
+        stand.buyWithETH{value: 0.0001 ether}(3, true);
+
+        assertEq(stand.totalBurned(), 82e18, "two burns");
+        assertEq(stand.totalDonated(), 41e18, "one donation");
+        assertEq(stand.totalSales(), 3, "three sales");
+    }
+
+    function test_DonateWithUSDC() public {
+        bytes memory path = abi.encodePacked(
+            RWACU, RWACU_WETH_FEE, WETH, USDC_WETH_FEE, USDC
+        );
+        stand.acceptToken(USDC, 410_000, 100_000, path);
+        deal(USDC, reader, 1_000_000);
+
+        uint256 supplyBefore = _totalSupply();
+        vm.startPrank(reader);
+        IERC20(USDC).approve(address(stand), type(uint256).max);
+        stand.buyWithToken(USDC, 1, false);
+        vm.stopPrank();
+
+        assertEq(_totalSupply(), supplyBefore, "donating must not burn");
+        assertEq(stand.totalDonated(), 41e18);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────

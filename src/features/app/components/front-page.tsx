@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import sdk from '@farcaster/miniapp-sdk';
 import { useTheme } from '@/features/app/theme-context';
 import { ThemePicker } from '@/features/app/components/theme-picker';
+import { WalletButton } from '@/features/app/components/wallet-button';
 import { PaywallGate } from '@/features/app/components/paywall-gate';
 import { StoryModal } from '@/features/app/components/story-modal';
 import { useCurrentIssue } from '@/hooks/use-current-issue';
@@ -609,7 +610,10 @@ export function FrontPage({
             <span className={`text-[8px] uppercase tracking-widest ${theme.mutedClass}`} style={SF}>
               {is420Theme ? '"Smoke \'em if you got \'em"' : `"${paperTagline}"`}
             </span>
-            <ThemePicker />
+            <div className="flex items-center gap-2">
+              <WalletButton />
+              <ThemePicker />
+            </div>
           </div>
           {is420Theme && <div className="tribune-420-stripe" style={{ height: 4, width: '100%', animationDirection: 'reverse' }} />}
         </div>
